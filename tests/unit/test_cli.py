@@ -1,10 +1,39 @@
-from presentation.cli.app import run
+from presentation.cli.app import handle_choice, run
 
 
-def test_cli_runs(capsys):
+def test_handle_choice_exit(capsys):
+    result = handle_choice("0")
+
+    captured = capsys.readouterr()
+
+    assert result is False
+    assert "Exiting application..." in captured.out
+
+
+def test_handle_choice_valid_option(capsys):
+    result = handle_choice("1")
+
+    captured = capsys.readouterr()
+
+    assert result is True
+    assert "You selected: 1" in captured.out
+
+
+def test_handle_choice_invalid_option(capsys):
+    result = handle_choice("9")
+
+    captured = capsys.readouterr()
+
+    assert result is True
+    assert "Invalid choice" in captured.out
+
+
+def test_run_exits(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
     run()
 
     captured = capsys.readouterr()
 
     assert "Python Business Management System" in captured.out
-    assert "Application starting..." in captured.out
+    assert "Exiting application..." in captured.out
