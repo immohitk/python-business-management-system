@@ -8,6 +8,8 @@ from presentation.cli.sales import handle_sales
 
 from presentation.cli.customers import handle_customers
 
+from presentation.cli.suppliers import handle_suppliers
+
 def test_handle_choice_exit(capsys):
     result = handle_choice("0")
 
@@ -51,6 +53,15 @@ def test_handle_choice_customers(capsys):
 
     assert result is True
     assert "Customers menu" in captured.out
+
+
+def test_handle_choice_suppliers(capsys):
+    result = handle_choice("5")
+
+    captured = capsys.readouterr()
+
+    assert result is True
+    assert "Suppliers menu" in captured.out
 
 
 def test_handle_choice_invalid_option(capsys):
@@ -103,3 +114,11 @@ def test_handle_customers(capsys):
     captured = capsys.readouterr()
 
     assert "Customers menu" in captured.out
+
+
+def test_handle_suppliers(capsys):
+    handle_suppliers()
+
+    captured = capsys.readouterr()
+
+    assert "Suppliers menu" in captured.out
