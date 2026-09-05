@@ -192,6 +192,18 @@ python -m pip install -e ".[dev]"
 python -m presentation.cli
 ```
 
+### Current CLI
+
+The current CLI provides navigation for:
+
+- Products
+- Inventory
+- Sales
+- Customers
+- Suppliers
+
+The individual business operations are being implemented progressively.
+
 ---
 
 ## 🧪 Development
