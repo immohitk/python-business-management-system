@@ -188,7 +188,9 @@ python -m pip install -e ".[dev]"
 
 ### Run the Application
 
-Application commands will be documented here as the usable application interface is introduced.
+```bash
+python -m presentation.cli
+```
 
 ---
 
