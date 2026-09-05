@@ -1,5 +1,7 @@
 from presentation.cli.app import handle_choice, run
 
+from presentation.cli.products import handle_products
+
 
 def test_handle_choice_exit(capsys):
     result = handle_choice("0")
@@ -10,13 +12,13 @@ def test_handle_choice_exit(capsys):
     assert "Exiting application..." in captured.out
 
 
-def test_handle_choice_valid_option(capsys):
+def test_handle_choice_products(capsys):
     result = handle_choice("1")
 
     captured = capsys.readouterr()
 
     assert result is True
-    assert "You selected: 1" in captured.out
+    assert "Products menu" in captured.out
 
 
 def test_handle_choice_invalid_option(capsys):
@@ -37,3 +39,11 @@ def test_run_exits(capsys, monkeypatch):
 
     assert "Python Business Management System" in captured.out
     assert "Exiting application..." in captured.out
+
+
+def test_handle_products(capsys):
+    handle_products()
+
+    captured = capsys.readouterr()
+
+    assert "Products menu" in captured.out
