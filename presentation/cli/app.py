@@ -1,5 +1,7 @@
 from presentation.cli.products import handle_products
 
+from presentation.cli.inventory import handle_inventory
+
 def display_menu() -> None:
     print("========================================")
     print("   Python Business Management System")
@@ -23,7 +25,11 @@ def handle_choice(choice: str) -> bool:
         handle_products()
         return True
 
-    if choice in {"2", "3", "4", "5"}:
+    if choice == "2":
+        handle_inventory()
+        return True
+
+    if choice in {"3", "4", "5"}:
         print(f"You selected: {choice}")
         return True
 

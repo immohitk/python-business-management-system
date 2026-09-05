@@ -2,6 +2,8 @@ from presentation.cli.app import handle_choice, run
 
 from presentation.cli.products import handle_products
 
+from presentation.cli.inventory import handle_inventory
+
 
 def test_handle_choice_exit(capsys):
     result = handle_choice("0")
@@ -19,6 +21,15 @@ def test_handle_choice_products(capsys):
 
     assert result is True
     assert "Products menu" in captured.out
+
+
+def test_handle_choice_inventory(capsys):
+    result = handle_choice("2")
+
+    captured = capsys.readouterr()
+
+    assert result is True
+    assert "Inventory menu" in captured.out
 
 
 def test_handle_choice_invalid_option(capsys):
@@ -47,3 +58,11 @@ def test_handle_products(capsys):
     captured = capsys.readouterr()
 
     assert "Products menu" in captured.out
+
+
+def test_handle_inventory(capsys):
+    handle_inventory()
+
+    captured = capsys.readouterr()
+
+    assert "Inventory menu" in captured.out
