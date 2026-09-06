@@ -60,3 +60,31 @@ def test_initialized_temporary_database_contains_expected_tables(tmp_path):
         assert tables == [("schema_version",)]
     finally:
         connection.close()
+
+
+def test_database_initialization_is_repeatable_on_temporary_database(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        tables = connection.execute(
+            """
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table'
+            ORDER BY name
+            """
+        ).fetchall()
+
+        version_rows = connection.execute(
+            "SELECT id, version FROM schema_version"
+        ).fetchall()
+
+        assert tables == [("schema_version",)]
+        assert version_rows == [(1, "1")]
+    finally:
+        connection.close()
