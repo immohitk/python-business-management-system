@@ -22,3 +22,16 @@ def test_connection_can_execute_sql():
         assert result == (1,)
     finally:
         connection.close()
+
+
+def test_get_connection_supports_custom_database_path(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    connection = get_connection(database_path)
+
+    try:
+        assert isinstance(connection, sqlite3.Connection)
+        assert database_path.exists()
+        assert database_path.is_file()
+    finally:
+        connection.close()
