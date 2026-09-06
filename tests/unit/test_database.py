@@ -38,3 +38,25 @@ def test_database_initialization_creates_expected_schema(tmp_path, monkeypatch):
         assert version == (1, "1")
     finally:
         connection.close()
+
+
+def test_initialized_temporary_database_contains_expected_tables(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        tables = connection.execute(
+            """
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table'
+            ORDER BY name
+            """
+        ).fetchall()
+
+        assert tables == [("schema_version",)]
+    finally:
+        connection.close()
