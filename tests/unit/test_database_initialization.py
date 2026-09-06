@@ -59,3 +59,23 @@ def test_initialize_database_is_idempotent():
         assert rows == [(1, "1")]
     finally:
         connection.close()
+
+
+def test_initialize_database_supports_custom_database_path(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+
+    assert database_path.exists()
+    assert database_path.is_file()
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        result = connection.execute(
+            "SELECT id, version FROM schema_version"
+        ).fetchone()
+
+        assert result == (1, "1")
+    finally:
+        connection.close()
