@@ -181,3 +181,87 @@ def test_suppliers_table_has_expected_constraints(tmp_path):
         assert column_map["address"][3] == 0
     finally:
         connection.close()
+
+
+def test_sales_table_has_expected_columns(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        columns = connection.execute(
+            "PRAGMA table_info(sales)"
+        ).fetchall()
+
+        column_names = [column[1] for column in columns]
+
+        assert column_names == [
+            "id",
+            "customer_id",
+            "sale_date",
+            "total_amount",
+            "created_at",
+        ]
+    finally:
+        connection.close()
+
+
+def test_sale_items_table_has_expected_columns(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        columns = connection.execute(
+            "PRAGMA table_info(sale_items)"
+        ).fetchall()
+
+        column_names = [column[1] for column in columns]
+
+        assert column_names == [
+            "id",
+            "sale_id",
+            "product_id",
+            "quantity",
+            "unit_price",
+        ]
+    finally:
+        connection.close()
+
+
+def test_sales_and_sale_items_have_expected_foreign_keys(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        sales_foreign_keys = connection.execute(
+            "PRAGMA foreign_key_list(sales)"
+        ).fetchall()
+
+        sale_items_foreign_keys = connection.execute(
+            "PRAGMA foreign_key_list(sale_items)"
+        ).fetchall()
+
+        sales_relationships = {
+            (foreign_key[3], foreign_key[2], foreign_key[4])
+            for foreign_key in sales_foreign_keys
+        }
+
+        sale_items_relationships = {
+            (foreign_key[3], foreign_key[2], foreign_key[4])
+            for foreign_key in sale_items_foreign_keys
+        }
+
+        assert ("customer_id", "customers", "id") in sales_relationships
+
+        assert ("sale_id", "sales", "id") in sale_items_relationships
+        assert ("product_id", "products", "id") in sale_items_relationships
+    finally:
+        connection.close()

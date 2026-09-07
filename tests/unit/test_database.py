@@ -60,6 +60,8 @@ def test_initialized_temporary_database_contains_expected_tables(tmp_path):
         assert tables == [
             ("customers",),
             ("products",),
+            ("sale_items",),
+            ("sales",),
             ("schema_version",),
             ("suppliers",),
         ]
@@ -92,6 +94,8 @@ def test_database_initialization_is_repeatable_on_temporary_database(tmp_path):
         assert tables == [
             ("customers",),
             ("products",),
+            ("sale_items",),
+            ("sales",),
             ("schema_version",),
             ("suppliers",),
         ]
