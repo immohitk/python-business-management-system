@@ -58,6 +58,7 @@ def test_initialized_temporary_database_contains_expected_tables(tmp_path):
         ).fetchall()
 
         assert tables == [
+            ("customers",),
             ("products",),
             ("schema_version",),
         ]
@@ -88,6 +89,7 @@ def test_database_initialization_is_repeatable_on_temporary_database(tmp_path):
         ).fetchall()
 
         assert tables == [
+            ("customers",),
             ("products",),
             ("schema_version",),
         ]

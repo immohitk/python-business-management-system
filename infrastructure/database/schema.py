@@ -16,6 +16,15 @@ CREATE TABLE IF NOT EXISTS products (
     quantity INTEGER NOT NULL,
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS customers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT,
+    email TEXT,
+    address TEXT,
+    created_at TEXT NOT NULL
+);
 """
 
 
