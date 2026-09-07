@@ -25,6 +25,15 @@ CREATE TABLE IF NOT EXISTS customers (
     address TEXT,
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS suppliers (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT,
+    email TEXT,
+    address TEXT,
+    created_at TEXT NOT NULL
+);
 """
 
 
