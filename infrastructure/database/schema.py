@@ -53,6 +53,16 @@ CREATE TABLE IF NOT EXISTS sale_items (
     FOREIGN KEY (sale_id) REFERENCES sales(id),
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
+
+CREATE TABLE IF NOT EXISTS invoices (
+    id INTEGER PRIMARY KEY,
+    sale_id INTEGER NOT NULL,
+    invoice_number TEXT NOT NULL UNIQUE,
+    invoice_date TEXT NOT NULL,
+    total_amount REAL NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (sale_id) REFERENCES sales(id)
+);
 """
 
 
