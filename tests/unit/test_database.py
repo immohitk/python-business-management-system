@@ -57,7 +57,10 @@ def test_initialized_temporary_database_contains_expected_tables(tmp_path):
             """
         ).fetchall()
 
-        assert tables == [("schema_version",)]
+        assert tables == [
+            ("products",),
+            ("schema_version",),
+        ]
     finally:
         connection.close()
 
@@ -84,7 +87,10 @@ def test_database_initialization_is_repeatable_on_temporary_database(tmp_path):
             "SELECT id, version FROM schema_version"
         ).fetchall()
 
-        assert tables == [("schema_version",)]
+        assert tables == [
+            ("products",),
+            ("schema_version",),
+        ]
         assert version_rows == [(1, "1")]
     finally:
         connection.close()

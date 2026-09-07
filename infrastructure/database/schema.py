@@ -6,6 +6,16 @@ CREATE TABLE IF NOT EXISTS schema_version (
 
 INSERT OR IGNORE INTO schema_version (id, version)
 VALUES (1, '1');
+
+CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    sku TEXT NOT NULL UNIQUE,
+    price REAL NOT NULL,
+    quantity INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+);
 """
 
 
