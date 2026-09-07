@@ -347,3 +347,84 @@ def test_invoices_table_has_expected_foreign_key(tmp_path):
         assert ("sale_id", "sales", "id") in relationships
     finally:
         connection.close()
+
+
+def test_database_contains_all_core_business_tables(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        tables = connection.execute(
+            """
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table'
+            ORDER BY name
+            """
+        ).fetchall()
+
+        assert tables == [
+            ("customers",),
+            ("invoices",),
+            ("products",),
+            ("sale_items",),
+            ("sales",),
+            ("schema_version",),
+            ("suppliers",),
+        ]
+    finally:
+        connection.close()
+
+
+def test_core_business_tables_have_expected_relationships(tmp_path):
+    database_path = tmp_path / "test_business.db"
+
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+
+    try:
+        relationships = []
+
+        for table in ["sales", "sale_items", "invoices"]:
+            foreign_keys = connection.execute(
+                f"PRAGMA foreign_key_list({table})"
+            ).fetchall()
+
+            relationships.extend(
+                (table, foreign_key[3], foreign_key[2], foreign_key[4])
+                for foreign_key in foreign_keys
+            )
+
+        assert (
+            "sales",
+            "customer_id",
+            "customers",
+            "id",
+        ) in relationships
+
+        assert (
+            "sale_items",
+            "sale_id",
+            "sales",
+            "id",
+        ) in relationships
+
+        assert (
+            "sale_items",
+            "product_id",
+            "products",
+            "id",
+        ) in relationships
+
+        assert (
+            "invoices",
+            "sale_id",
+            "sales",
+            "id",
+        ) in relationships
+    finally:
+        connection.close()
