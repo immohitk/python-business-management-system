@@ -18,6 +18,8 @@ The project is being developed incrementally with an emphasis on:
 - Business logic
 - Modular architecture
 - Practical application development
+- Automated testing
+- Database reliability
 
 The goal is to build something that is not only technically sound, but also useful in a real business environment.
 
@@ -25,7 +27,7 @@ The goal is to build something that is not only technically sound, but also usef
 
 ## ✨ What It Offers
 
-The system is being developed around common business-management operations, including:
+The system is currently being developed around the following business-management areas:
 
 - 📦 Product management
 - 📊 Inventory management
@@ -33,8 +35,8 @@ The system is being developed around common business-management operations, incl
 - 👥 Customer management
 - 🚚 Supplier management
 - 🧾 Invoicing
-- 💳 Payment tracking
-- 📈 Business reporting
+
+The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, and automated integration testing.
 
 Functionality is being introduced progressively as the application develops.
 
@@ -104,6 +106,7 @@ This separation helps keep the core application logic independent from the inter
 
 ```text
 python-business-management-system/
+
 │
 ├── application/
 │   ├── services/
@@ -136,6 +139,42 @@ python-business-management-system/
 ```
 
 The structure will evolve naturally as new functionality is introduced.
+
+---
+
+## 🗄️ Database
+
+The project currently uses **SQLite** as its database.
+
+The database foundation includes:
+
+- Centralized database configuration
+- SQLite connection management
+- Repeatable database initialization
+- Versioned database schema
+- Seven core database tables
+- Defined table relationships
+- Repository-based persistence
+- Integration testing with temporary databases
+- Clean-environment database verification
+
+The current database tables are:
+
+```text
+schema_version
+products
+customers
+suppliers
+sales
+sale_items
+invoices
+```
+
+Detailed database documentation is available in:
+
+```text
+docs/database.md
+```
 
 ---
 
@@ -192,7 +231,17 @@ python -m pip install -e ".[dev]"
 python -m presentation.cli
 ```
 
-### Current CLI
+### Run Tests
+
+```bash
+pytest
+```
+
+The current test suite covers database configuration, database initialization, schema behavior, repository persistence, CLI behavior, and integration scenarios.
+
+---
+
+## 🖥️ Current CLI
 
 The current CLI provides navigation for:
 
@@ -226,6 +275,8 @@ Commit
 
 Each feature is developed as part of the overall application rather than being added as an isolated demonstration.
 
+The project also uses automated unit and integration tests to verify implemented functionality.
+
 ---
 
 ## 🤝 Contributing
@@ -251,6 +302,13 @@ Technical documentation and project notes are maintained in:
 
 ```text
 docs/
+```
+
+Current documentation includes:
+
+```text
+docs/
+└── database.md
 ```
 
 Additional documentation will be added as the project grows.
