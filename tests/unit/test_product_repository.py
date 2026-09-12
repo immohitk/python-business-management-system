@@ -1,3 +1,4 @@
+import sqlite3
 from pathlib import Path
 
 from infrastructure.database.connection import get_connection
@@ -100,5 +101,78 @@ def test_delete_product(tmp_path):
         repository.delete(product.id)
 
         assert repository.get_by_id(product.id) is None
+    finally:
+        connection.close()
+
+
+def test_add_product_with_no_description(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        product = Product(
+            id=None,
+            name="Primer",
+            description=None,
+            sku="PRIMER-001",
+            price=300.0,
+            quantity=5,
+            created_at="2026-09-12T10:00:00",
+        )
+
+        repository.add(product)
+
+        result = repository.get_by_id(product.id)
+
+        assert result == product
+    finally:
+        connection.close()
+
+
+def test_add_product_with_zero_price_and_quantity(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        product = Product(
+            id=None,
+            name="Sample Product",
+            description="Test product",
+            sku="SAMPLE-001",
+            price=0.0,
+            quantity=0,
+            created_at="2026-09-12T10:00:00",
+        )
+
+        repository.add(product)
+
+        result = repository.get_by_id(product.id)
+
+        assert result == product
+    finally:
+        connection.close()
+
+
+def test_add_product_with_duplicate_sku_fails(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        first_product = create_product()
+        second_product = Product(
+            id=None,
+            name="Another Paint",
+            description="Another product",
+            sku="PAINT-001",
+            price=500.0,
+            quantity=5,
+            created_at="2026-09-12T10:00:00",
+        )
+
+        repository.add(first_product)
+
+        try:
+            repository.add(second_product)
+        except sqlite3.IntegrityError:
+            pass
+        else:
+            raise AssertionError("Expected duplicate SKU to fail.")
     finally:
         connection.close()
