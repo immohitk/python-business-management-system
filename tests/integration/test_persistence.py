@@ -281,3 +281,49 @@ def test_sale_data_survives_connection_reopen(tmp_path):
         assert stored_invoice.sale_id == sale.id
     finally:
         reopened_connection.close()
+
+
+def test_products_survive_connection_reopen_and_list_in_order(tmp_path):
+    database_path = tmp_path / "integration.db"
+    initialize_database(database_path)
+
+    connection = get_connection(database_path)
+
+    first_product = Product(
+        id=None,
+        name="Wall Paint",
+        description="Interior wall paint",
+        sku="WALL-001",
+        price=850.0,
+        quantity=25,
+        created_at="2026-09-12T10:00:00",
+    )
+
+    second_product = Product(
+        id=None,
+        name="Paint Brush",
+        description="Medium paint brush",
+        sku="BRUSH-001",
+        price=120.0,
+        quantity=15,
+        created_at="2026-09-12T10:00:00",
+    )
+
+    try:
+        repository = ProductRepository(connection)
+
+        repository.add(first_product)
+        repository.add(second_product)
+    finally:
+        connection.close()
+
+    reopened_connection = get_connection(database_path)
+
+    try:
+        repository = ProductRepository(reopened_connection)
+
+        result = repository.get_all()
+
+        assert result == [first_product, second_product]
+    finally:
+        reopened_connection.close()
