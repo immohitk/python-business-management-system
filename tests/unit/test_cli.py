@@ -59,13 +59,15 @@ def test_handle_choice_customers(capsys, monkeypatch):
     assert "Customers" in captured.out
 
 
-def test_handle_choice_suppliers(capsys):
+def test_handle_choice_suppliers(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
     result = handle_choice("5")
 
     captured = capsys.readouterr()
 
     assert result is True
-    assert "Suppliers menu" in captured.out
+    assert "Suppliers" in captured.out
 
 
 def test_handle_choice_invalid_option(capsys):
@@ -124,9 +126,11 @@ def test_handle_customers(capsys, monkeypatch):
     assert "Customers" in captured.out
 
 
-def test_handle_suppliers(capsys):
+def test_handle_suppliers(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
     handle_suppliers()
 
     captured = capsys.readouterr()
 
-    assert "Suppliers menu" in captured.out
+    assert "Suppliers" in captured.out
