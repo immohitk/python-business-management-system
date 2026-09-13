@@ -100,3 +100,77 @@ def test_delete_supplier(tmp_path):
         assert repository.get_by_id(supplier.id) is None
     finally:
         connection.close()
+
+
+def test_supplier_with_optional_fields_none_persists(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        supplier = Supplier(
+            id=None,
+            name="Walk-in Supplier",
+            phone=None,
+            email=None,
+            address=None,
+            created_at="2026-09-07T20:00:00",
+        )
+
+        repository.add(supplier)
+
+        result = repository.get_by_id(supplier.id)
+
+        assert result == supplier
+    finally:
+        connection.close()
+
+
+def test_supplier_listing_preserves_persisted_data(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        first_supplier = create_supplier()
+        second_supplier = Supplier(
+            id=None,
+            name="XYZ Hardware Suppliers",
+            phone="9123456780",
+            email="xyz@example.com",
+            address="Mumbai",
+            created_at="2026-09-07T20:00:00",
+        )
+
+        repository.add(first_supplier)
+        repository.add(second_supplier)
+
+        result = repository.get_all()
+
+        assert result[0] == first_supplier
+        assert result[1] == second_supplier
+    finally:
+        connection.close()
+
+
+def test_suppliers_survive_connection_reopen(tmp_path):
+    database_path = tmp_path / "test.db"
+    initialize_database(database_path)
+
+    first_connection = get_connection(database_path)
+
+    try:
+        repository = SupplierRepository(first_connection)
+        supplier = create_supplier()
+
+        repository.add(supplier)
+        supplier_id = supplier.id
+    finally:
+        first_connection.close()
+
+    second_connection = get_connection(database_path)
+
+    try:
+        repository = SupplierRepository(second_connection)
+
+        result = repository.get_by_id(supplier_id)
+
+        assert result == supplier
+    finally:
+        second_connection.close()
