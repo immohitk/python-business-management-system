@@ -100,3 +100,77 @@ def test_delete_customer(tmp_path):
         assert repository.get_by_id(customer.id) is None
     finally:
         connection.close()
+
+
+def test_customer_with_optional_fields_none_persists(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        customer = Customer(
+            id=None,
+            name="Walk-in Customer",
+            phone=None,
+            email=None,
+            address=None,
+            created_at="2026-09-07T20:00:00",
+        )
+
+        repository.add(customer)
+
+        result = repository.get_by_id(customer.id)
+
+        assert result == customer
+    finally:
+        connection.close()
+
+
+def test_customer_listing_preserves_persisted_data(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        first_customer = create_customer()
+        second_customer = Customer(
+            id=None,
+            name="Priya Verma",
+            phone="9123456780",
+            email="priya@example.com",
+            address="Mumbai",
+            created_at="2026-09-07T20:00:00",
+        )
+
+        repository.add(first_customer)
+        repository.add(second_customer)
+
+        result = repository.get_all()
+
+        assert result[0] == first_customer
+        assert result[1] == second_customer
+    finally:
+        connection.close()
+
+
+def test_customers_survive_connection_reopen(tmp_path):
+    database_path = tmp_path / "test.db"
+    initialize_database(database_path)
+
+    first_connection = get_connection(database_path)
+
+    try:
+        repository = CustomerRepository(first_connection)
+        customer = create_customer()
+
+        repository.add(customer)
+        customer_id = customer.id
+    finally:
+        first_connection.close()
+
+    second_connection = get_connection(database_path)
+
+    try:
+        repository = CustomerRepository(second_connection)
+
+        result = repository.get_by_id(customer_id)
+
+        assert result == customer
+    finally:
+        second_connection.close()
