@@ -251,7 +251,30 @@ The current CLI provides navigation for:
 - Customers
 - Suppliers
 
-The individual business operations are being implemented progressively.
+### Currently Available
+
+#### Products
+
+- Add product
+- List products
+- Get product
+- Delete product
+
+#### Customers
+
+- Add customer
+- List customers
+- Get customer
+- Delete customer
+
+#### Suppliers
+
+- Add supplier
+- List suppliers
+- Get supplier
+- Delete supplier
+
+Inventory, sales, and invoicing workflows will be implemented progressively in future releases.
 
 ---
 
