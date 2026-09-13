@@ -19,13 +19,15 @@ def test_handle_choice_exit(capsys):
     assert "Exiting application..." in captured.out
 
 
-def test_handle_choice_products(capsys):
+def test_handle_choice_products(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
     result = handle_choice("1")
 
     captured = capsys.readouterr()
 
     assert result is True
-    assert "Products menu" in captured.out
+    assert "Products" in captured.out
 
 
 def test_handle_choice_inventory(capsys):
@@ -84,12 +86,14 @@ def test_run_exits(capsys, monkeypatch):
     assert "Exiting application..." in captured.out
 
 
-def test_handle_products(capsys):
+def test_handle_products(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
     handle_products()
 
     captured = capsys.readouterr()
 
-    assert "Products menu" in captured.out
+    assert "Products" in captured.out
 
 
 def test_handle_inventory(capsys):
