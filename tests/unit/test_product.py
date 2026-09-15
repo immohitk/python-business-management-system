@@ -168,3 +168,131 @@ def test_product_allows_none_id_before_persistence():
     )
 
     assert product.id is None
+
+
+def test_product_add_stock():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.add_stock(5)
+
+    assert product.quantity == 15
+
+
+def test_product_adjust_stock():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.adjust_stock(7)
+
+    assert product.quantity == 7
+
+
+def test_product_deduct_stock():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.deduct_stock(3)
+
+    assert product.quantity == 7
+
+
+def test_product_add_stock_rejects_zero():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Stock addition amount must be greater than zero",
+    ):
+        product.add_stock(0)
+
+    assert product.quantity == 10
+
+
+def test_product_adjust_stock_rejects_negative_quantity():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Stock quantity cannot be negative",
+    ):
+        product.adjust_stock(-1)
+
+    assert product.quantity == 10
+
+
+def test_product_deduct_stock_rejects_zero():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Stock deduction amount must be greater than zero",
+    ):
+        product.deduct_stock(0)
+
+    assert product.quantity == 10
+
+
+def test_product_deduct_stock_rejects_amount_greater_than_stock():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Stock quantity cannot be negative",
+    ):
+        product.deduct_stock(11)
+
+    assert product.quantity == 10
