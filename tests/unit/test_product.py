@@ -296,3 +296,51 @@ def test_product_deduct_stock_rejects_amount_greater_than_stock():
         product.deduct_stock(11)
 
     assert product.quantity == 10
+
+
+def test_product_deduct_stock_allows_exact_available_stock():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.deduct_stock(10)
+
+    assert product.quantity == 0
+
+
+def test_product_adjust_stock_allows_zero():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.adjust_stock(0)
+
+    assert product.quantity == 0
+
+
+def test_product_add_stock_from_zero():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=0,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.add_stock(5)
+
+    assert product.quantity == 5
