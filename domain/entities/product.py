@@ -1,4 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from domain.entities.stock_movement import (
+    StockMovement,
+    StockMovementType,
+)
 
 from domain.rules.inventory_rules import (
     validate_stock_addition,
@@ -25,6 +30,8 @@ class Product:
     quantity: int
     created_at: str
 
+    movements: list[StockMovement] = field(default_factory=list)
+
     def __post_init__(self) -> None:
         validate_product_name(self.name)
         validate_product_sku(self.sku)
@@ -34,12 +41,30 @@ class Product:
 
     def add_stock(self, amount: int) -> None:
         validate_stock_addition(amount)
+
         self.quantity += amount
         validate_stock_quantity(self.quantity)
 
+        self.movements.append(
+            StockMovement(
+                movement_type=StockMovementType.ADD,
+                quantity=amount,
+                resulting_stock=self.quantity,
+            )
+        )
+
     def adjust_stock(self, quantity: int) -> None:
         validate_stock_adjustment(quantity)
+
         self.quantity = quantity
+
+        self.movements.append(
+            StockMovement(
+                movement_type=StockMovementType.ADJUST,
+                quantity=quantity,
+                resulting_stock=self.quantity,
+            )
+        )
 
     def deduct_stock(self, amount: int) -> None:
         validate_stock_deduction(amount)
@@ -48,3 +73,11 @@ class Product:
         validate_stock_quantity(new_quantity)
 
         self.quantity = new_quantity
+
+        self.movements.append(
+            StockMovement(
+                movement_type=StockMovementType.DEDUCT,
+                quantity=amount,
+                resulting_stock=self.quantity,
+            )
+        )

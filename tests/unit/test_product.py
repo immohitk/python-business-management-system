@@ -2,6 +2,8 @@ import pytest
 
 from domain.entities.product import Product
 
+from domain.entities.stock_movement import StockMovementType
+
 
 def test_valid_product_can_be_created():
     product = Product(
@@ -344,3 +346,123 @@ def test_product_add_stock_from_zero():
     product.add_stock(5)
 
     assert product.quantity == 5
+
+
+def test_product_add_stock_records_movement():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.add_stock(5)
+
+    assert len(product.movements) == 1
+    assert product.movements[0].movement_type == StockMovementType.ADD
+    assert product.movements[0].quantity == 5
+    assert product.movements[0].resulting_stock == 15
+
+
+def test_product_adjust_stock_records_movement():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.adjust_stock(7)
+
+    assert len(product.movements) == 1
+    assert product.movements[0].movement_type == StockMovementType.ADJUST
+    assert product.movements[0].quantity == 7
+    assert product.movements[0].resulting_stock == 7
+
+
+def test_product_deduct_stock_records_movement():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    product.deduct_stock(3)
+
+    assert len(product.movements) == 1
+    assert product.movements[0].movement_type == StockMovementType.DEDUCT
+    assert product.movements[0].quantity == 3
+    assert product.movements[0].resulting_stock == 7
+
+
+def test_product_failed_add_stock_does_not_record_movement():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Stock addition amount must be greater than zero",
+    ):
+        product.add_stock(0)
+
+    assert product.quantity == 10
+    assert product.movements == []
+
+
+def test_product_failed_adjust_stock_does_not_record_movement():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Stock quantity cannot be negative",
+    ):
+        product.adjust_stock(-1)
+
+    assert product.quantity == 10
+    assert product.movements == []
+
+
+def test_product_failed_deduct_stock_does_not_record_movement():
+    product = Product(
+        id=1,
+        name="Laptop",
+        description="Business laptop",
+        sku="LAP-001",
+        price=50000.0,
+        quantity=10,
+        created_at="2026-01-01T10:00:00",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Stock quantity cannot be negative",
+    ):
+        product.deduct_stock(11)
+
+    assert product.quantity == 10
+    assert product.movements == []
