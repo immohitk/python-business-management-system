@@ -104,3 +104,72 @@ def test_stock_in_rejects_missing_product(tmp_path):
             raise AssertionError("Expected missing product to fail.")
     finally:
         connection.close()
+
+
+def test_adjust_stock_changes_product_quantity(tmp_path):
+    service, product_repository, _, connection = create_service(tmp_path)
+
+    try:
+        product = create_product()
+        product_repository.add(product)
+
+        service.adjust_stock(product.id, 20)
+
+        result = product_repository.get_by_id(product.id)
+
+        assert result is not None
+        assert result.quantity == 20
+    finally:
+        connection.close()
+
+
+def test_adjust_stock_creates_stock_movement(tmp_path):
+    service, product_repository, stock_movement_repository, connection = create_service(
+        tmp_path
+    )
+
+    try:
+        product = create_product()
+        product_repository.add(product)
+
+        service.adjust_stock(product.id, 20)
+
+        movements = stock_movement_repository.get_movements(product.id)
+
+        assert len(movements) == 1
+        assert movements[0].movement_type.value == "ADJUST"
+        assert movements[0].quantity == 20
+        assert movements[0].resulting_stock == 20
+    finally:
+        connection.close()
+
+
+def test_adjust_stock_rejects_negative_quantity(tmp_path):
+    service, product_repository, _, connection = create_service(tmp_path)
+
+    try:
+        product = create_product()
+        product_repository.add(product)
+
+        try:
+            service.adjust_stock(product.id, -1)
+        except ValueError as exc:
+            assert str(exc) == "Stock quantity cannot be negative."
+        else:
+            raise AssertionError("Expected negative adjustment to fail.")
+    finally:
+        connection.close()
+
+
+def test_adjust_stock_rejects_missing_product(tmp_path):
+    service, _, _, connection = create_service(tmp_path)
+
+    try:
+        try:
+            service.adjust_stock(999, 20)
+        except ValueError as exc:
+            assert str(exc) == "Product not found."
+        else:
+            raise AssertionError("Expected missing product to fail.")
+    finally:
+        connection.close()
