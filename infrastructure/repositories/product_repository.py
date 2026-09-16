@@ -37,6 +37,32 @@ class ProductRepository(Repository[Product]):
         entity.id = cursor.lastrowid
         self.connection.commit()
 
+    def update(self, entity: Product) -> None:
+        self.connection.execute(
+            """
+            UPDATE products
+            SET
+                name = ?,
+                description = ?,
+                sku = ?,
+                price = ?,
+                quantity = ?,
+                created_at = ?
+            WHERE id = ?
+            """,
+            (
+                entity.name,
+                entity.description,
+                entity.sku,
+                entity.price,
+                entity.quantity,
+                entity.created_at,
+                entity.id,
+            ),
+        )
+        self.connection.commit()
+
+
     def get_by_id(self, entity_id: int) -> Product | None:
         row = self.connection.execute(
             """

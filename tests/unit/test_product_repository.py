@@ -279,3 +279,21 @@ def test_product_without_stock_movements_loads_empty_movement_list(tmp_path):
         assert result.movements == []
     finally:
         connection.close()
+
+
+def test_update_product(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        product = create_product()
+        repository.add(product)
+
+        product.quantity = 25
+        repository.update(product)
+
+        result = repository.get_by_id(product.id)
+
+        assert result is not None
+        assert result.quantity == 25
+    finally:
+        connection.close()
