@@ -12,6 +12,7 @@ from infrastructure.repositories.customer_repository import CustomerRepository
 from infrastructure.repositories.invoice_repository import InvoiceRepository
 from infrastructure.repositories.product_repository import ProductRepository
 from infrastructure.repositories.sale_repository import SaleRepository
+from infrastructure.repositories.stock_movement_repository import StockMovementRepository
 from infrastructure.repositories.supplier_repository import SupplierRepository
 
 
@@ -337,6 +338,7 @@ def test_product_stock_movements_survive_connection_reopen(tmp_path):
 
     try:
         product_repository = ProductRepository(connection)
+        stock_movement_repository = StockMovementRepository(connection)
 
         product = Product(
             id=None,
@@ -354,25 +356,7 @@ def test_product_stock_movements_survive_connection_reopen(tmp_path):
         product.deduct_stock(3)
 
         for movement in product.movements:
-            connection.execute(
-                """
-                INSERT INTO stock_movements (
-                    product_id,
-                    movement_type,
-                    quantity,
-                    resulting_stock
-                )
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    product.id,
-                    movement.movement_type.value,
-                    movement.quantity,
-                    movement.resulting_stock,
-                ),
-            )
-
-        connection.commit()
+            stock_movement_repository.add_movement(product.id, movement)
     finally:
         connection.close()
 
