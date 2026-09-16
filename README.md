@@ -36,7 +36,7 @@ The system is currently being developed around the following business-management
 - 🚚 Supplier management
 - 🧾 Invoicing
 
-The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, product-linked stock movement history, and automated unit and integration testing.
+The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, application services for master data and inventory operations, product-linked stock movement history, and automated unit and integration testing.
 
 Functionality is being introduced progressively as the application develops.
 
@@ -297,9 +297,19 @@ The inventory domain currently supports:
 - Stock movement tracking
 - Persistent stock movement history
 
-The interactive inventory workflow will be implemented progressively in future releases.
+Inventory operations are coordinated through the application service layer, which applies the domain rules and persists the resulting product and stock movement changes.
 
-Inventory persistence is currently handled through the repository layer and is covered by automated integration tests.
+The inventory service currently supports:
+
+- Stock-in operations
+- Stock adjustments
+- Stock-out operations
+- Invalid quantity protection
+- Insufficient-stock protection
+- Persistent stock movement recording
+
+The interactive inventory workflow will be implemented progressively in future releases.
+Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
 
 Sales and invoicing workflows will also be implemented progressively in future releases.
 
