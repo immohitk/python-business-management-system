@@ -176,3 +176,106 @@ def test_add_product_with_duplicate_sku_fails(tmp_path):
             raise AssertionError("Expected duplicate SKU to fail.")
     finally:
         connection.close()
+
+
+def test_get_product_by_id_loads_stock_movements(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        product = create_product()
+        repository.add(product)
+
+        product.add_stock(5)
+        product.deduct_stock(3)
+
+        for movement in product.movements:
+            connection.execute(
+                """
+                INSERT INTO stock_movements (
+                    product_id,
+                    movement_type,
+                    quantity,
+                    resulting_stock
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    product.id,
+                    movement.movement_type.value,
+                    movement.quantity,
+                    movement.resulting_stock,
+                ),
+            )
+        connection.commit()
+
+        result = repository.get_by_id(product.id)
+
+        assert result is not None
+        assert result.movements == product.movements
+    finally:
+        connection.close()
+
+
+def test_get_all_products_loads_stock_movements(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        first_product = create_product()
+        second_product = Product(
+            id=None,
+            name="Brush",
+            description="Paint brush",
+            sku="BRUSH-001",
+            price=120.0,
+            quantity=20,
+            created_at="2026-09-07T20:00:00",
+        )
+
+        repository.add(first_product)
+        repository.add(second_product)
+
+        first_product.add_stock(5)
+        second_product.deduct_stock(2)
+
+        for product in [first_product, second_product]:
+            for movement in product.movements:
+                connection.execute(
+                    """
+                    INSERT INTO stock_movements (
+                        product_id,
+                        movement_type,
+                        quantity,
+                        resulting_stock
+                    )
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        product.id,
+                        movement.movement_type.value,
+                        movement.quantity,
+                        movement.resulting_stock,
+                    ),
+                )
+        connection.commit()
+
+        result = repository.get_all()
+
+        assert result[0].movements == first_product.movements
+        assert result[1].movements == second_product.movements
+    finally:
+        connection.close()
+
+
+def test_product_without_stock_movements_loads_empty_movement_list(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        product = create_product()
+        repository.add(product)
+
+        result = repository.get_by_id(product.id)
+
+        assert result is not None
+        assert result.movements == []
+    finally:
+        connection.close()

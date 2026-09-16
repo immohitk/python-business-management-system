@@ -327,3 +327,63 @@ def test_products_survive_connection_reopen_and_list_in_order(tmp_path):
         assert result == [first_product, second_product]
     finally:
         reopened_connection.close()
+
+
+def test_product_stock_movements_survive_connection_reopen(tmp_path):
+    database_path = tmp_path / "integration.db"
+    initialize_database(database_path)
+
+    connection = get_connection(database_path)
+
+    try:
+        product_repository = ProductRepository(connection)
+
+        product = Product(
+            id=None,
+            name="Stock History Product",
+            description="Product with stock history",
+            sku="STOCK-HISTORY-001",
+            price=600.0,
+            quantity=10,
+            created_at="2026-09-16T20:00:00",
+        )
+
+        product_repository.add(product)
+
+        product.add_stock(5)
+        product.deduct_stock(3)
+
+        for movement in product.movements:
+            connection.execute(
+                """
+                INSERT INTO stock_movements (
+                    product_id,
+                    movement_type,
+                    quantity,
+                    resulting_stock
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    product.id,
+                    movement.movement_type.value,
+                    movement.quantity,
+                    movement.resulting_stock,
+                ),
+            )
+
+        connection.commit()
+    finally:
+        connection.close()
+
+    reopened_connection = get_connection(database_path)
+
+    try:
+        product_repository = ProductRepository(reopened_connection)
+
+        stored_product = product_repository.get_by_id(product.id)
+
+        assert stored_product is not None
+        assert stored_product.movements == product.movements
+    finally:
+        reopened_connection.close()
