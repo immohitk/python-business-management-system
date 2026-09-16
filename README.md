@@ -36,7 +36,7 @@ The system is currently being developed around the following business-management
 - 🚚 Supplier management
 - 🧾 Invoicing
 
-The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, and automated integration testing.
+The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, product-linked stock movement history, and automated unit and integration testing.
 
 Functionality is being introduced progressively as the application develops.
 
@@ -152,9 +152,11 @@ The database foundation includes:
 - SQLite connection management
 - Repeatable database initialization
 - Versioned database schema
-- Seven core database tables
+- Eight core database tables
 - Defined table relationships
 - Repository-based persistence
+- Persistent stock movement history
+- Product-linked stock movement records
 - Integration testing with temporary databases
 - Clean-environment database verification
 
@@ -168,7 +170,17 @@ suppliers
 sales
 sale_items
 invoices
+stock_movements
 ```
+
+The `stock_movements` table stores inventory movement history associated with products, including:
+
+- Stock additions
+- Stock adjustments
+- Stock deductions
+- Resulting stock quantity
+
+Stock movement persistence is handled through the repository layer, keeping database operations separate from the domain model.
 
 Detailed database documentation is available in:
 
@@ -237,7 +249,7 @@ python -m presentation.cli
 pytest
 ```
 
-The current test suite covers database configuration, database initialization, schema behavior, repository persistence, CLI behavior, and integration scenarios.
+The current test suite covers database configuration, database initialization, schema behavior, repository persistence, CLI behavior, inventory rules, stock movement persistence, and integration scenarios.
 
 ---
 
@@ -274,7 +286,22 @@ The current CLI provides navigation for:
 - Get supplier
 - Delete supplier
 
-Inventory, sales, and invoicing workflows will be implemented progressively in future releases.
+### Inventory
+
+The inventory domain currently supports:
+
+- Stock quantity validation
+- Stock additions
+- Stock adjustments
+- Stock deductions
+- Stock movement tracking
+- Persistent stock movement history
+
+The interactive inventory workflow will be implemented progressively in future releases.
+
+Inventory persistence is currently handled through the repository layer and is covered by automated integration tests.
+
+Sales and invoicing workflows will also be implemented progressively in future releases.
 
 ---
 
@@ -299,6 +326,8 @@ Commit
 Each feature is developed as part of the overall application rather than being added as an isolated demonstration.
 
 The project also uses automated unit and integration tests to verify implemented functionality.
+
+Development is organized into versioned releases, with each release introducing a focused set of improvements.
 
 ---
 
