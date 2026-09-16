@@ -10,6 +10,7 @@ EXPECTED_TABLES = [
     "sale_items",
     "sales",
     "schema_version",
+    "stock_movements",
     "suppliers",
 ]
 

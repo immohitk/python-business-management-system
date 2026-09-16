@@ -373,6 +373,7 @@ def test_database_contains_all_core_business_tables(tmp_path):
             ("sale_items",),
             ("sales",),
             ("schema_version",),
+            ("stock_movements",),
             ("suppliers",),
         ]
     finally:

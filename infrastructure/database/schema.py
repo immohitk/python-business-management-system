@@ -17,6 +17,15 @@ CREATE TABLE IF NOT EXISTS products (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id INTEGER PRIMARY KEY,
+    product_id INTEGER NOT NULL,
+    movement_type TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    resulting_stock INTEGER NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
 CREATE TABLE IF NOT EXISTS customers (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,

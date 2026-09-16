@@ -64,6 +64,7 @@ def test_initialized_temporary_database_contains_expected_tables(tmp_path):
             ("sale_items",),
             ("sales",),
             ("schema_version",),
+            ("stock_movements",),
             ("suppliers",),
         ]
     finally:
@@ -99,6 +100,7 @@ def test_database_initialization_is_repeatable_on_temporary_database(tmp_path):
             ("sale_items",),
             ("sales",),
             ("schema_version",),
+            ("stock_movements",),
             ("suppliers",),
         ]
         assert version_rows == [(1, "1")]
