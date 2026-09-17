@@ -47,11 +47,13 @@ def create_movement(
     movement_type: StockMovementType = StockMovementType.ADD,
     quantity: int = 5,
     resulting_stock: int = 15,
+    created_at: str = "2026-08-10T10:00:00",
 ) -> StockMovement:
     return StockMovement(
         movement_type=movement_type,
         quantity=quantity,
         resulting_stock=resulting_stock,
+        created_at=created_at,
     )
 
 
@@ -196,5 +198,24 @@ def test_delete_movement(tmp_path):
         repository.delete(movement_id)
 
         assert repository.get_by_id(movement_id) is None
+    finally:
+        connection.close()
+
+
+def test_add_movement_persists_created_at(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        product_id = create_product(connection)
+        movement = create_movement(
+            created_at="2026-08-10T15:30:00",
+        )
+
+        repository.add_movement(product_id, movement)
+
+        persisted_movements = repository.get_movements(product_id)
+
+        assert len(persisted_movements) == 1
+        assert persisted_movements[0].created_at == "2026-08-10T15:30:00"
     finally:
         connection.close()

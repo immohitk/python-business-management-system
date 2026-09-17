@@ -19,7 +19,8 @@ class StockMovementRepository(Repository[StockMovement]):
             SELECT
                 movement_type,
                 quantity,
-                resulting_stock
+                resulting_stock,
+                created_at
             FROM stock_movements
             WHERE id = ?
             """,
@@ -33,6 +34,7 @@ class StockMovementRepository(Repository[StockMovement]):
             movement_type=StockMovementType(row[0]),
             quantity=row[1],
             resulting_stock=row[2],
+            created_at=row[3],
         )
 
     def get_all(self) -> list[StockMovement]:
@@ -41,7 +43,8 @@ class StockMovementRepository(Repository[StockMovement]):
             SELECT
                 movement_type,
                 quantity,
-                resulting_stock
+                resulting_stock,
+                created_at
             FROM stock_movements
             ORDER BY id
             """
@@ -52,6 +55,7 @@ class StockMovementRepository(Repository[StockMovement]):
                 movement_type=StockMovementType(row[0]),
                 quantity=row[1],
                 resulting_stock=row[2],
+                created_at=row[3],
             )
             for row in rows
         ]
@@ -77,15 +81,17 @@ class StockMovementRepository(Repository[StockMovement]):
                 product_id,
                 movement_type,
                 quantity,
-                resulting_stock
+                resulting_stock,
+                created_at
             )
-            VALUES (?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             """,
             (
                 product_id,
                 entity.movement_type.value,
                 entity.quantity,
                 entity.resulting_stock,
+                entity.created_at,
             ),
         )
         self.connection.commit()
@@ -96,7 +102,8 @@ class StockMovementRepository(Repository[StockMovement]):
             SELECT
                 movement_type,
                 quantity,
-                resulting_stock
+                resulting_stock,
+                created_at
             FROM stock_movements
             WHERE product_id = ?
             ORDER BY id
@@ -109,6 +116,7 @@ class StockMovementRepository(Repository[StockMovement]):
                 movement_type=StockMovementType(row[0]),
                 quantity=row[1],
                 resulting_stock=row[2],
+                created_at=row[3],
             )
             for row in rows
         ]
