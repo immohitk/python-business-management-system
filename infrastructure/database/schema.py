@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS stock_movements (
     movement_type TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     resulting_stock INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 

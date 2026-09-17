@@ -429,3 +429,27 @@ def test_core_business_tables_have_expected_relationships(tmp_path):
         ) in relationships
     finally:
         connection.close()
+
+
+def test_stock_movements_table_has_expected_columns(tmp_path):
+    database_path = tmp_path / "test_business.db"
+    initialize_database(database_path)
+
+    connection = sqlite3.connect(database_path)
+    try:
+        columns = connection.execute(
+            "PRAGMA table_info(stock_movements)"
+        ).fetchall()
+
+        column_names = [column[1] for column in columns]
+
+        assert column_names == [
+            "id",
+            "product_id",
+            "movement_type",
+            "quantity",
+            "resulting_stock",
+            "created_at",
+        ]
+    finally:
+        connection.close()
