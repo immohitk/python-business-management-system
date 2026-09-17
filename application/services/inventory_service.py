@@ -78,3 +78,6 @@ class InventoryService:
             product_id,
             movement,
         )
+
+    def get_stock(self) -> list[Product]:
+        return self.product_repository.get_all()

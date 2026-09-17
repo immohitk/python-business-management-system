@@ -314,3 +314,43 @@ def test_stock_out_rejects_missing_product(tmp_path):
             raise AssertionError("Expected missing product to fail.")
     finally:
         connection.close()
+
+
+def test_get_stock_returns_all_products(tmp_path):
+    service, product_repository, _, connection = create_service(tmp_path)
+
+    try:
+        first_product = create_product()
+        second_product = Product(
+            id=None,
+            name="Brush",
+            description="Paint brush",
+            sku="BRUSH-001",
+            price=120.0,
+            quantity=25,
+            created_at="2026-09-16T20:00:00",
+        )
+
+        product_repository.add(first_product)
+        product_repository.add(second_product)
+
+        products = service.get_stock()
+
+        assert len(products) == 2
+        assert products[0].name == "Paint"
+        assert products[0].quantity == 10
+        assert products[1].name == "Brush"
+        assert products[1].quantity == 25
+    finally:
+        connection.close()
+
+
+def test_get_stock_returns_empty_list_when_no_products(tmp_path):
+    service, _, _, connection = create_service(tmp_path)
+
+    try:
+        products = service.get_stock()
+
+        assert products == []
+    finally:
+        connection.close()

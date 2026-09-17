@@ -44,7 +44,7 @@ def handle_inventory(service: InventoryService | None = None) -> None:
                 break
 
             if choice == "1":
-                print("View stock")
+                view_stock(service)
             elif choice == "2":
                 print("Stock in")
             elif choice == "3":
@@ -58,3 +58,22 @@ def handle_inventory(service: InventoryService | None = None) -> None:
     finally:
         if owns_connection:
             connection.close()
+
+
+def view_stock(service: InventoryService) -> None:
+    print()
+    print("Current Stock")
+
+    products = service.get_stock()
+
+    if not products:
+        print("No products found.")
+        return
+
+    for product in products:
+        print(
+            f"ID: {product.id} | "
+            f"Name: {product.name} | "
+            f"SKU: {product.sku} | "
+            f"Quantity: {product.quantity}"
+        )
