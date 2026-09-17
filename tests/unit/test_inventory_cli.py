@@ -4,6 +4,7 @@ from presentation.cli.inventory import (
     adjust_stock,
     handle_inventory,
     stock_in,
+    stock_out,
     view_stock,
 )
 
@@ -167,3 +168,47 @@ def test_handle_inventory_adjust_stock(capsys, monkeypatch):
 
     assert "Adjust Stock" in captured.out
     assert "Stock adjusted successfully." in captured.out
+
+
+def test_stock_out_calls_service(capsys, monkeypatch):
+    service = Mock()
+
+    inputs = iter(["1", "5"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    stock_out(service)
+
+    service.stock_out.assert_called_once()
+
+    call_args = service.stock_out.call_args
+
+    assert call_args.args[0] == 1
+    assert call_args.args[1] == 5
+    assert isinstance(call_args.args[2], str)
+
+    captured = capsys.readouterr()
+
+    assert "Stock Out" in captured.out
+    assert "Stock removed successfully." in captured.out
+
+
+def test_handle_inventory_stock_out(capsys, monkeypatch):
+    service = Mock()
+
+    inputs = iter(["4", "1", "5", "0"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    handle_inventory(service)
+
+    service.stock_out.assert_called_once()
+
+    call_args = service.stock_out.call_args
+
+    assert call_args.args[0] == 1
+    assert call_args.args[1] == 5
+    assert isinstance(call_args.args[2], str)
+
+    captured = capsys.readouterr()
+
+    assert "Stock Out" in captured.out
+    assert "Stock removed successfully." in captured.out
