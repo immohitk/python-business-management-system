@@ -140,7 +140,8 @@ class ProductRepository(Repository[Product]):
             SELECT
                 movement_type,
                 quantity,
-                resulting_stock
+                resulting_stock,
+                created_at
             FROM stock_movements
             WHERE product_id = ?
             ORDER BY id
@@ -153,6 +154,7 @@ class ProductRepository(Repository[Product]):
                 movement_type=StockMovementType(row[0]),
                 quantity=row[1],
                 resulting_stock=row[2],
+                created_at=row[3],
             )
             for row in rows
         ]

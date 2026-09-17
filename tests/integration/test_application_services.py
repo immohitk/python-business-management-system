@@ -99,9 +99,23 @@ def test_inventory_service_persists_stock_operations(tmp_path):
 
         product_repository.add(product)
 
-        inventory_service.stock_in(product.id, 5)
-        inventory_service.adjust_stock(product.id, 12)
-        inventory_service.stock_out(product.id, 4)
+        inventory_service.stock_in(
+            product.id,
+            5,
+            created_at="2026-09-16T11:00:00",
+        )
+
+        inventory_service.adjust_stock(
+            product.id,
+            12,
+            created_at="2026-09-16T12:00:00",
+        )
+
+        inventory_service.stock_out(
+            product.id,
+            4,
+            created_at="2026-09-16T13:00:00",
+        )
 
         result = product_repository.get_by_id(product.id)
 
@@ -115,14 +129,17 @@ def test_inventory_service_persists_stock_operations(tmp_path):
         assert movements[0].movement_type == StockMovementType.ADD
         assert movements[0].quantity == 5
         assert movements[0].resulting_stock == 25
+        assert movements[0].created_at == "2026-09-16T11:00:00"
 
         assert movements[1].movement_type == StockMovementType.ADJUST
         assert movements[1].quantity == 12
         assert movements[1].resulting_stock == 12
+        assert movements[1].created_at == "2026-09-16T12:00:00"
 
         assert movements[2].movement_type == StockMovementType.DEDUCT
         assert movements[2].quantity == 4
         assert movements[2].resulting_stock == 8
+        assert movements[2].created_at == "2026-09-16T13:00:00"
     finally:
         connection.close()
 
@@ -154,19 +171,31 @@ def test_inventory_service_rejects_invalid_stock_operations(tmp_path):
             ValueError,
             match="Stock addition amount must be greater than zero",
         ):
-            inventory_service.stock_in(product.id, 0)
+            inventory_service.stock_in(
+                product.id,
+                0,
+                created_at="2026-09-16T11:00:00",
+            )
 
         with pytest.raises(
             ValueError,
             match="Stock quantity cannot be negative",
         ):
-            inventory_service.adjust_stock(product.id, -1)
+            inventory_service.adjust_stock(
+                product.id,
+                -1,
+                created_at="2026-09-16T11:00:00",
+            )
 
         with pytest.raises(
             ValueError,
             match="Stock deduction amount must be greater than zero",
         ):
-            inventory_service.stock_out(product.id, 0)
+            inventory_service.stock_out(
+                product.id,
+                0,
+                created_at="2026-09-16T11:00:00",
+            )
 
         result = product_repository.get_by_id(product.id)
 
@@ -204,7 +233,11 @@ def test_inventory_service_rejects_insufficient_stock(tmp_path):
             ValueError,
             match="Stock quantity cannot be negative",
         ):
-            inventory_service.stock_out(product.id, 11)
+            inventory_service.stock_out(
+                product.id,
+                11,
+                created_at="2026-09-16T11:00:00",
+            )
 
         result = product_repository.get_by_id(product.id)
 

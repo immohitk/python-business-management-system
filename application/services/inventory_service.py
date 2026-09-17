@@ -16,13 +16,18 @@ class InventoryService:
         self.product_repository = product_repository
         self.stock_movement_repository = stock_movement_repository
 
-    def stock_in(self, product_id: int, amount: int) -> None:
+    def stock_in(
+        self,
+        product_id: int,
+        amount: int,
+        created_at: str,
+    ) -> None:
         product = self.product_repository.get_by_id(product_id)
 
         if product is None:
             raise ValueError("Product not found.")
 
-        product.add_stock(amount)
+        product.add_stock(amount, created_at)
 
         self.product_repository.update(product)
 
@@ -32,13 +37,18 @@ class InventoryService:
             movement,
         )
 
-    def adjust_stock(self, product_id: int, quantity: int) -> None:
+    def adjust_stock(
+        self,
+        product_id: int,
+        quantity: int,
+        created_at: str,
+    ) -> None:
         product = self.product_repository.get_by_id(product_id)
 
         if product is None:
             raise ValueError("Product not found.")
 
-        product.adjust_stock(quantity)
+        product.adjust_stock(quantity, created_at)
 
         self.product_repository.update(product)
 
@@ -48,13 +58,18 @@ class InventoryService:
             movement,
         )
 
-    def stock_out(self, product_id: int, amount: int) -> None:
+    def stock_out(
+        self,
+        product_id: int,
+        amount: int,
+        created_at: str,
+    ) -> None:
         product = self.product_repository.get_by_id(product_id)
 
         if product is None:
             raise ValueError("Product not found.")
 
-        product.deduct_stock(amount)
+        product.deduct_stock(amount, created_at)
 
         self.product_repository.update(product)
 
