@@ -50,7 +50,7 @@ def handle_inventory(service: InventoryService | None = None) -> None:
             elif choice == "2":
                 stock_in(service)
             elif choice == "3":
-                print("Adjust stock")
+                adjust_stock(service)
             elif choice == "4":
                 print("Stock out")
             elif choice == "5":
@@ -97,3 +97,21 @@ def stock_in(service: InventoryService) -> None:
     )
 
     print("Stock added successfully.")
+
+
+def adjust_stock(service: InventoryService) -> None:
+    print()
+    print("Adjust Stock")
+
+    product_id = int(input("Product ID: "))
+    quantity = int(input("Quantity: "))
+
+    created_at = datetime.now().isoformat(timespec="seconds")
+
+    service.adjust_stock(
+        product_id,
+        quantity,
+        created_at,
+    )
+
+    print("Stock adjusted successfully.")
