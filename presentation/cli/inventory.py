@@ -54,7 +54,7 @@ def handle_inventory(service: InventoryService | None = None) -> None:
             elif choice == "4":
                 stock_out(service)
             elif choice == "5":
-                print("View movement history")
+                view_movement_history(service)
             else:
                 print("Invalid choice. Please select a valid option.")
     finally:
@@ -133,3 +133,24 @@ def stock_out(service: InventoryService) -> None:
     )
 
     print("Stock removed successfully.")
+
+
+def view_movement_history(service: InventoryService) -> None:
+    print()
+    print("Stock Movement History")
+
+    product_id = int(input("Product ID: "))
+
+    movements = service.get_movement_history(product_id)
+
+    if not movements:
+        print("No stock movements found.")
+        return
+
+    for movement in movements:
+        print(
+            f"Type: {movement.movement_type.value} | "
+            f"Quantity: {movement.quantity} | "
+            f"Resulting Stock: {movement.resulting_stock} | "
+            f"Created At: {movement.created_at}"
+        )

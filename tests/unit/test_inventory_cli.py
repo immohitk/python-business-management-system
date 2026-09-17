@@ -5,6 +5,7 @@ from presentation.cli.inventory import (
     handle_inventory,
     stock_in,
     stock_out,
+    view_movement_history,
     view_stock,
 )
 
@@ -212,3 +213,56 @@ def test_handle_inventory_stock_out(capsys, monkeypatch):
 
     assert "Stock Out" in captured.out
     assert "Stock removed successfully." in captured.out
+
+
+def test_view_movement_history_displays_movements(capsys, monkeypatch) -> None:
+    movement = Mock()
+    movement.movement_type.value = "ADD"
+    movement.quantity = 5
+    movement.resulting_stock = 15
+    movement.created_at = "2026-09-16T20:00:00"
+
+    service = Mock()
+    service.get_movement_history.return_value = [movement]
+
+    monkeypatch.setattr("builtins.input", lambda _: "1")
+
+    view_movement_history(service)
+
+    output = capsys.readouterr().out
+
+    assert "Stock Movement History" in output
+    assert "Type: ADD" in output
+    assert "Quantity: 5" in output
+    assert "Resulting Stock: 15" in output
+    assert "Created At: 2026-09-16T20:00:00" in output
+
+
+def test_view_movement_history_displays_empty_message(capsys, monkeypatch) -> None:
+    service = Mock()
+    service.get_movement_history.return_value = []
+
+    monkeypatch.setattr("builtins.input", lambda _: "1")
+
+    view_movement_history(service)
+
+    output = capsys.readouterr().out
+
+    assert "No stock movements found." in output
+
+
+def test_handle_inventory_movement_history(monkeypatch) -> None:
+    service = Mock()
+    movement = Mock()
+    movement.movement_type.value = "ADD"
+    movement.quantity = 5
+    movement.resulting_stock = 15
+    movement.created_at = "2026-09-16T20:00:00"
+    service.get_movement_history.return_value = [movement]
+
+    inputs = iter(["5", "1", "0"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    handle_inventory(service)
+
+    service.get_movement_history.assert_called_once_with(1)

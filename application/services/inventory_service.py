@@ -1,4 +1,5 @@
 from domain.entities.product import Product
+from domain.entities.stock_movement import StockMovement
 from infrastructure.repositories.product_repository import ProductRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
@@ -81,3 +82,11 @@ class InventoryService:
 
     def get_stock(self) -> list[Product]:
         return self.product_repository.get_all()
+
+    def get_movement_history(self, product_id: int) -> list[StockMovement]:
+        product = self.product_repository.get_by_id(product_id)
+
+        if product is None:
+            raise ValueError("Product not found.")
+
+        return self.stock_movement_repository.get_movements(product_id)

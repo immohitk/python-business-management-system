@@ -354,3 +354,40 @@ def test_get_stock_returns_empty_list_when_no_products(tmp_path):
         assert products == []
     finally:
         connection.close()
+
+
+def test_get_movement_history_returns_product_movements(tmp_path: Path) -> None:
+    service, product_repository, stock_movement_repository, connection = create_service(
+        tmp_path
+    )
+    try:
+        product = create_product()
+        product_repository.add(product)
+
+        service.stock_in(
+            product.id,
+            5,
+            created_at="2026-09-16T20:00:00",
+        )
+
+        movements = service.get_movement_history(product.id)
+
+        assert len(movements) == 1
+        assert movements[0].movement_type.value == "ADD"
+        assert movements[0].quantity == 5
+        assert movements[0].resulting_stock == 15
+        assert movements[0].created_at == "2026-09-16T20:00:00"
+    finally:
+        connection.close()
+
+
+def test_get_movement_history_rejects_missing_product(tmp_path: Path) -> None:
+    service, _, _, connection = create_service(tmp_path)
+    try:
+        service.get_movement_history(999)
+    except ValueError as exc:
+        assert str(exc) == "Product not found."
+    else:
+        raise AssertionError("Expected ValueError")
+    finally:
+        connection.close()
