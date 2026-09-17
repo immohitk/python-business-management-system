@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from application.services.inventory_service import InventoryService
 from infrastructure.database.connection import get_connection
 from infrastructure.repositories.product_repository import ProductRepository
@@ -46,7 +48,7 @@ def handle_inventory(service: InventoryService | None = None) -> None:
             if choice == "1":
                 view_stock(service)
             elif choice == "2":
-                print("Stock in")
+                stock_in(service)
             elif choice == "3":
                 print("Adjust stock")
             elif choice == "4":
@@ -77,3 +79,21 @@ def view_stock(service: InventoryService) -> None:
             f"SKU: {product.sku} | "
             f"Quantity: {product.quantity}"
         )
+
+
+def stock_in(service: InventoryService) -> None:
+    print()
+    print("Stock In")
+
+    product_id = int(input("Product ID: "))
+    amount = int(input("Quantity: "))
+
+    created_at = datetime.now().isoformat(timespec="seconds")
+
+    service.stock_in(
+        product_id,
+        amount,
+        created_at,
+    )
+
+    print("Stock added successfully.")

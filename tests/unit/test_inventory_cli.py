@@ -1,4 +1,6 @@
-from presentation.cli.inventory import handle_inventory, view_stock
+from unittest.mock import Mock
+
+from presentation.cli.inventory import handle_inventory, stock_in, view_stock
 
 
 class FakeInventoryService:
@@ -72,3 +74,47 @@ def test_handle_inventory_view_stock(capsys, monkeypatch):
 
     assert "Current Stock" in captured.out
     assert "Paint" in captured.out
+
+
+def test_stock_in_calls_service(capsys, monkeypatch):
+    service = Mock()
+
+    inputs = iter(["1", "5"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    stock_in(service)
+
+    service.stock_in.assert_called_once()
+
+    call_args = service.stock_in.call_args
+
+    assert call_args.args[0] == 1
+    assert call_args.args[1] == 5
+    assert isinstance(call_args.args[2], str)
+
+    captured = capsys.readouterr()
+
+    assert "Stock In" in captured.out
+    assert "Stock added successfully." in captured.out
+
+
+def test_handle_inventory_stock_in(capsys, monkeypatch):
+    service = Mock()
+
+    inputs = iter(["2", "1", "5", "0"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    handle_inventory(service)
+
+    service.stock_in.assert_called_once()
+
+    call_args = service.stock_in.call_args
+
+    assert call_args.args[0] == 1
+    assert call_args.args[1] == 5
+    assert isinstance(call_args.args[2], str)
+
+    captured = capsys.readouterr()
+
+    assert "Stock In" in captured.out
+    assert "Stock added successfully." in captured.out
