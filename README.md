@@ -36,7 +36,7 @@ The system is currently being developed around the following business-management
 - 🚚 Supplier management
 - 🧾 Invoicing
 
-The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, application services for master data and inventory operations, product-linked stock movement history, and automated unit and integration testing.
+The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, application services for master data and inventory operations, product-linked stock movement history, timestamped inventory movement records, and automated unit and integration testing.
 
 Functionality is being introduced progressively as the application develops.
 
@@ -157,6 +157,7 @@ The database foundation includes:
 - Repository-based persistence
 - Persistent stock movement history
 - Product-linked stock movement records
+- Timestamped stock movement records
 - Integration testing with temporary databases
 - Clean-environment database verification
 
@@ -178,7 +179,10 @@ The `stock_movements` table stores inventory movement history associated with pr
 - Stock additions
 - Stock adjustments
 - Stock deductions
+- Movement timestamp
 - Resulting stock quantity
+
+Each persisted stock movement records when the change occurred, allowing inventory changes to be traced over time.
 
 Stock movement persistence is handled through the repository layer, keeping database operations separate from the domain model.
 
@@ -249,7 +253,7 @@ python -m presentation.cli
 pytest
 ```
 
-The current test suite covers database configuration, database initialization, schema behavior, repository persistence, CLI behavior, inventory rules, stock movement persistence, and integration scenarios.
+The current test suite covers database configuration, database initialization, schema behavior, repository persistence, CLI behavior, inventory rules, stock movement persistence, timestamped movement history, and integration scenarios.
 
 ---
 
@@ -295,7 +299,8 @@ The inventory domain currently supports:
 - Stock adjustments
 - Stock deductions
 - Stock movement tracking
-- Persistent stock movement history
+- Timestamped stock movement history
+- Persistent stock movement recording
 
 Inventory operations are coordinated through the application service layer, which applies the domain rules and persists the resulting product and stock movement changes.
 
@@ -306,12 +311,29 @@ The inventory service currently supports:
 - Stock-out operations
 - Invalid quantity protection
 - Insufficient-stock protection
-- Persistent stock movement recording
+- Timestamped stock movement recording
+- Persistent stock movement history
 
 The interactive inventory workflow will be implemented progressively in future releases.
+
 Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
 
 Sales and invoicing workflows will also be implemented progressively in future releases.
+
+---
+
+## 📦 Release History
+
+### v0.4.4 — Stock Movement History
+
+- Added timestamps to stock movement records
+- Propagated movement timestamps through product and inventory operations
+- Persisted stock movement timestamps in the database
+- Added repository and integration coverage for movement timestamps
+- Stock additions, adjustments, and deductions can now be traced with their recorded time
+- Updated persistence tests to verify timestamped movement history
+
+**Release result:** Stock changes are explainable through timestamped movement history.
 
 ---
 

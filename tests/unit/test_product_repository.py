@@ -185,8 +185,14 @@ def test_get_product_by_id_loads_stock_movements(tmp_path):
         product = create_product()
         repository.add(product)
 
-        product.add_stock(5)
-        product.deduct_stock(3)
+        product.add_stock(
+            5,
+            created_at="2026-09-13T10:00:00",
+        )
+        product.deduct_stock(
+            3,
+            created_at="2026-09-13T10:15:00",
+        )
 
         for movement in product.movements:
             connection.execute(
@@ -195,15 +201,17 @@ def test_get_product_by_id_loads_stock_movements(tmp_path):
                     product_id,
                     movement_type,
                     quantity,
-                    resulting_stock
+                    resulting_stock,
+                    created_at
                 )
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?)
                 """,
                 (
                     product.id,
                     movement.movement_type.value,
                     movement.quantity,
                     movement.resulting_stock,
+                    movement.created_at,
                 ),
             )
         connection.commit()
@@ -234,8 +242,14 @@ def test_get_all_products_loads_stock_movements(tmp_path):
         repository.add(first_product)
         repository.add(second_product)
 
-        first_product.add_stock(5)
-        second_product.deduct_stock(2)
+        first_product.add_stock(
+            5,
+            created_at="2026-09-13T11:00:00",
+        )
+        second_product.deduct_stock(
+            2,
+            created_at="2026-09-13T11:15:00",
+        )
 
         for product in [first_product, second_product]:
             for movement in product.movements:
@@ -245,15 +259,17 @@ def test_get_all_products_loads_stock_movements(tmp_path):
                         product_id,
                         movement_type,
                         quantity,
-                        resulting_stock
+                        resulting_stock,
+                        created_at
                     )
-                    VALUES (?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?)
                     """,
                     (
                         product.id,
                         movement.movement_type.value,
                         movement.quantity,
                         movement.resulting_stock,
+                        movement.created_at,
                     ),
                 )
         connection.commit()

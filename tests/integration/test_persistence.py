@@ -352,8 +352,14 @@ def test_product_stock_movements_survive_connection_reopen(tmp_path):
 
         product_repository.add(product)
 
-        product.add_stock(5)
-        product.deduct_stock(3)
+        product.add_stock(
+            5,
+            created_at="2026-09-16T20:10:00",
+        )
+        product.deduct_stock(
+            3,
+            created_at="2026-09-16T20:20:00",
+        )
 
         for movement in product.movements:
             stock_movement_repository.add_movement(product.id, movement)
