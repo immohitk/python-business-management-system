@@ -72,12 +72,19 @@ def test_add_movement(tmp_path):
                 product_id,
                 movement_type,
                 quantity,
-                resulting_stock
+                resulting_stock,
+                created_at
             FROM stock_movements
             """
         ).fetchone()
 
-        assert row == (product_id, "ADD", 5, 15)
+        assert row == (
+            product_id,
+            "ADD",
+            5,
+            15,
+            "2026-08-10T10:00:00",
+        )
     finally:
         connection.close()
 
@@ -92,11 +99,13 @@ def test_get_movements(tmp_path):
             StockMovementType.ADD,
             5,
             15,
+            "2026-08-10T10:00:00",
         )
         second_movement = create_movement(
             StockMovementType.DEDUCT,
             3,
             12,
+            "2026-08-10T11:30:00",
         )
 
         repository.add_movement(product_id, first_movement)
