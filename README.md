@@ -314,15 +314,36 @@ The inventory service currently supports:
 - Timestamped stock movement recording
 - Persistent stock movement history
 
-The interactive inventory workflow will be implemented progressively in future releases.
+The interactive inventory workflow currently supports:
 
-Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
+- View stock
+- Stock-in operations
+- Stock adjustments
+- Stock-out operations
+- Movement history
+- CLI error handling
+
+Inventory CLI operations use the application service layer rather than accessing the database directly. Inventory changes are persisted through the repository layer and can be traced through timestamped stock movement history.
 
 Sales and invoicing workflows will also be implemented progressively in future releases.
+
+Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
 
 ---
 
 ## 📦 Release History
+
+### v0.5.0 — Inventory CLI and Regression
+
+- Added interactive inventory CLI workflows
+- Added stock viewing through the CLI
+- Added stock-in, stock adjustment, and stock-out operations through the CLI
+- Added inventory movement history through the CLI
+- Added CLI error handling for invalid input and inventory service errors
+- Added end-to-end inventory CLI integration coverage
+- Verified the complete application with 236 automated tests
+
+**Release result:** Safe inventory management.
 
 ### v0.4.4 — Stock Movement History
 
