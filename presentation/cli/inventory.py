@@ -85,72 +85,84 @@ def stock_in(service: InventoryService) -> None:
     print()
     print("Stock In")
 
-    product_id = int(input("Product ID: "))
-    amount = int(input("Quantity: "))
+    try:
+        product_id = int(input("Product ID: "))
+        amount = int(input("Quantity: "))
 
-    created_at = datetime.now().isoformat(timespec="seconds")
+        created_at = datetime.now().isoformat(timespec="seconds")
 
-    service.stock_in(
-        product_id,
-        amount,
-        created_at,
-    )
+        service.stock_in(
+            product_id,
+            amount,
+            created_at,
+        )
 
-    print("Stock added successfully.")
+        print("Stock added successfully.")
+    except ValueError as exc:
+        print(str(exc))
 
 
 def adjust_stock(service: InventoryService) -> None:
     print()
     print("Adjust Stock")
 
-    product_id = int(input("Product ID: "))
-    quantity = int(input("Quantity: "))
+    try:
+        product_id = int(input("Product ID: "))
+        quantity = int(input("Quantity: "))
 
-    created_at = datetime.now().isoformat(timespec="seconds")
+        created_at = datetime.now().isoformat(timespec="seconds")
 
-    service.adjust_stock(
-        product_id,
-        quantity,
-        created_at,
-    )
+        service.adjust_stock(
+            product_id,
+            quantity,
+            created_at,
+        )
 
-    print("Stock adjusted successfully.")
+        print("Stock adjusted successfully.")
+    except ValueError as exc:
+        print(str(exc))
 
 
 def stock_out(service: InventoryService) -> None:
     print()
     print("Stock Out")
 
-    product_id = int(input("Product ID: "))
-    amount = int(input("Quantity: "))
+    try:
+        product_id = int(input("Product ID: "))
+        amount = int(input("Quantity: "))
 
-    created_at = datetime.now().isoformat(timespec="seconds")
+        created_at = datetime.now().isoformat(timespec="seconds")
 
-    service.stock_out(
-        product_id,
-        amount,
-        created_at,
-    )
+        service.stock_out(
+            product_id,
+            amount,
+            created_at,
+        )
 
-    print("Stock removed successfully.")
+        print("Stock removed successfully.")
+    except ValueError as exc:
+        print(str(exc))
 
 
 def view_movement_history(service: InventoryService) -> None:
     print()
     print("Stock Movement History")
 
-    product_id = int(input("Product ID: "))
+    try:
+        product_id = int(input("Product ID: "))
 
-    movements = service.get_movement_history(product_id)
+        movements = service.get_movement_history(product_id)
 
-    if not movements:
-        print("No stock movements found.")
-        return
+        if not movements:
+            print("No stock movements found.")
+            return
 
-    for movement in movements:
-        print(
-            f"Type: {movement.movement_type.value} | "
-            f"Quantity: {movement.quantity} | "
-            f"Resulting Stock: {movement.resulting_stock} | "
-            f"Created At: {movement.created_at}"
-        )
+        for movement in movements:
+            print(
+                f"Type: {movement.movement_type.value} | "
+                f"Quantity: {movement.quantity} | "
+                f"Resulting Stock: {movement.resulting_stock} | "
+                f"Created At: {movement.created_at}"
+            )
+    except ValueError as exc:
+        print(str(exc))

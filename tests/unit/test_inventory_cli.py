@@ -127,6 +127,34 @@ def test_handle_inventory_stock_in(capsys, monkeypatch):
     assert "Stock added successfully." in captured.out
 
 
+def test_stock_in_displays_service_error(capsys, monkeypatch) -> None:
+    service = Mock()
+    service.stock_in.side_effect = ValueError("Product not found.")
+
+    inputs = iter(["999", "5"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    stock_in(service)
+
+    captured = capsys.readouterr()
+
+    assert "Product not found." in captured.out
+
+
+def test_stock_in_displays_invalid_input_error(capsys, monkeypatch) -> None:
+    service = Mock()
+
+    inputs = iter(["abc", "5"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    stock_in(service)
+
+    captured = capsys.readouterr()
+
+    assert "invalid literal" in captured.out
+    service.stock_in.assert_not_called()
+
+
 def test_adjust_stock_calls_service(capsys, monkeypatch):
     service = Mock()
 
@@ -215,6 +243,34 @@ def test_handle_inventory_stock_out(capsys, monkeypatch):
     assert "Stock removed successfully." in captured.out
 
 
+def test_stock_out_displays_service_error(capsys, monkeypatch) -> None:
+    service = Mock()
+    service.stock_out.side_effect = ValueError("Product not found.")
+
+    inputs = iter(["999", "5"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    stock_out(service)
+
+    captured = capsys.readouterr()
+
+    assert "Product not found." in captured.out
+
+
+def test_stock_out_displays_invalid_input_error(capsys, monkeypatch) -> None:
+    service = Mock()
+
+    inputs = iter(["abc", "5"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    stock_out(service)
+
+    captured = capsys.readouterr()
+
+    assert "invalid literal" in captured.out
+    service.stock_out.assert_not_called()
+
+
 def test_view_movement_history_displays_movements(capsys, monkeypatch) -> None:
     movement = Mock()
     movement.movement_type.value = "ADD"
@@ -266,3 +322,62 @@ def test_handle_inventory_movement_history(monkeypatch) -> None:
     handle_inventory(service)
 
     service.get_movement_history.assert_called_once_with(1)
+
+
+def test_adjust_stock_displays_service_error(capsys, monkeypatch) -> None:
+    service = Mock()
+    service.adjust_stock.side_effect = ValueError("Product not found.")
+
+    inputs = iter(["999", "20"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    adjust_stock(service)
+
+    captured = capsys.readouterr()
+
+    assert "Product not found." in captured.out
+
+
+def test_adjust_stock_displays_invalid_input_error(capsys, monkeypatch) -> None:
+    service = Mock()
+
+    inputs = iter(["abc", "20"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    adjust_stock(service)
+
+    captured = capsys.readouterr()
+
+    assert "invalid literal" in captured.out
+    service.adjust_stock.assert_not_called()
+
+
+def test_view_movement_history_displays_service_error(capsys, monkeypatch) -> None:
+    service = Mock()
+    service.get_movement_history.side_effect = ValueError("Product not found.")
+
+    inputs = iter(["999"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    view_movement_history(service)
+
+    captured = capsys.readouterr()
+
+    assert "Product not found." in captured.out
+
+
+def test_view_movement_history_displays_invalid_input_error(
+    capsys,
+    monkeypatch,
+) -> None:
+    service = Mock()
+
+    inputs = iter(["abc"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    view_movement_history(service)
+
+    captured = capsys.readouterr()
+
+    assert "invalid literal" in captured.out
+    service.get_movement_history.assert_not_called()
