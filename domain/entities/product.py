@@ -39,7 +39,7 @@ class Product:
         validate_product_quantity(self.quantity)
         validate_product_created_at(self.created_at)
 
-    def add_stock(self, amount: int) -> None:
+    def add_stock(self, amount: int, created_at: str) -> None:
         validate_stock_addition(amount)
 
         self.quantity += amount
@@ -50,10 +50,11 @@ class Product:
                 movement_type=StockMovementType.ADD,
                 quantity=amount,
                 resulting_stock=self.quantity,
+                created_at=created_at,
             )
         )
 
-    def adjust_stock(self, quantity: int) -> None:
+    def adjust_stock(self, quantity: int, created_at: str) -> None:
         validate_stock_adjustment(quantity)
 
         self.quantity = quantity
@@ -63,10 +64,11 @@ class Product:
                 movement_type=StockMovementType.ADJUST,
                 quantity=quantity,
                 resulting_stock=self.quantity,
+                created_at=created_at,
             )
         )
 
-    def deduct_stock(self, amount: int) -> None:
+    def deduct_stock(self, amount: int, created_at: str) -> None:
         validate_stock_deduction(amount)
 
         new_quantity = self.quantity - amount
@@ -79,5 +81,6 @@ class Product:
                 movement_type=StockMovementType.DEDUCT,
                 quantity=amount,
                 resulting_stock=self.quantity,
+                created_at=created_at,
             )
         )

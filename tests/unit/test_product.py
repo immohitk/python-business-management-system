@@ -183,7 +183,7 @@ def test_product_add_stock():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.add_stock(5)
+    product.add_stock(5, "2026-09-17T10:00:00")
 
     assert product.quantity == 15
 
@@ -199,7 +199,7 @@ def test_product_adjust_stock():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.adjust_stock(7)
+    product.adjust_stock(7, "2026-09-17T10:00:00")
 
     assert product.quantity == 7
 
@@ -215,7 +215,7 @@ def test_product_deduct_stock():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.deduct_stock(3)
+    product.deduct_stock(3, "2026-09-17T10:00:00")
 
     assert product.quantity == 7
 
@@ -235,7 +235,7 @@ def test_product_add_stock_rejects_zero():
         ValueError,
         match="Stock addition amount must be greater than zero",
     ):
-        product.add_stock(0)
+        product.add_stock(0, "2026-09-17T10:00:00")
 
     assert product.quantity == 10
 
@@ -255,7 +255,7 @@ def test_product_adjust_stock_rejects_negative_quantity():
         ValueError,
         match="Stock quantity cannot be negative",
     ):
-        product.adjust_stock(-1)
+        product.adjust_stock(-1, "2026-09-17T10:00:00")
 
     assert product.quantity == 10
 
@@ -275,7 +275,7 @@ def test_product_deduct_stock_rejects_zero():
         ValueError,
         match="Stock deduction amount must be greater than zero",
     ):
-        product.deduct_stock(0)
+        product.deduct_stock(0, "2026-09-17T10:00:00")
 
     assert product.quantity == 10
 
@@ -295,7 +295,7 @@ def test_product_deduct_stock_rejects_amount_greater_than_stock():
         ValueError,
         match="Stock quantity cannot be negative",
     ):
-        product.deduct_stock(11)
+        product.deduct_stock(11, "2026-09-17T10:00:00")
 
     assert product.quantity == 10
 
@@ -311,7 +311,7 @@ def test_product_deduct_stock_allows_exact_available_stock():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.deduct_stock(10)
+    product.deduct_stock(10, "2026-09-17T10:00:00")
 
     assert product.quantity == 0
 
@@ -327,7 +327,7 @@ def test_product_adjust_stock_allows_zero():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.adjust_stock(0)
+    product.adjust_stock(0, "2026-09-17T10:00:00")
 
     assert product.quantity == 0
 
@@ -343,7 +343,7 @@ def test_product_add_stock_from_zero():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.add_stock(5)
+    product.add_stock(5, "2026-09-17T10:00:00")
 
     assert product.quantity == 5
 
@@ -359,12 +359,13 @@ def test_product_add_stock_records_movement():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.add_stock(5)
+    product.add_stock(5, "2026-09-17T10:00:00")
 
     assert len(product.movements) == 1
     assert product.movements[0].movement_type == StockMovementType.ADD
     assert product.movements[0].quantity == 5
     assert product.movements[0].resulting_stock == 15
+    assert product.movements[0].created_at == "2026-09-17T10:00:00"
 
 
 def test_product_adjust_stock_records_movement():
@@ -378,12 +379,13 @@ def test_product_adjust_stock_records_movement():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.adjust_stock(7)
+    product.adjust_stock(7, "2026-09-17T10:00:00")
 
     assert len(product.movements) == 1
     assert product.movements[0].movement_type == StockMovementType.ADJUST
     assert product.movements[0].quantity == 7
     assert product.movements[0].resulting_stock == 7
+    assert product.movements[0].created_at == "2026-09-17T10:00:00"
 
 
 def test_product_deduct_stock_records_movement():
@@ -397,12 +399,13 @@ def test_product_deduct_stock_records_movement():
         created_at="2026-01-01T10:00:00",
     )
 
-    product.deduct_stock(3)
+    product.deduct_stock(3, "2026-09-17T10:00:00")
 
     assert len(product.movements) == 1
     assert product.movements[0].movement_type == StockMovementType.DEDUCT
     assert product.movements[0].quantity == 3
     assert product.movements[0].resulting_stock == 7
+    assert product.movements[0].created_at == "2026-09-17T10:00:00"
 
 
 def test_product_failed_add_stock_does_not_record_movement():
@@ -420,7 +423,7 @@ def test_product_failed_add_stock_does_not_record_movement():
         ValueError,
         match="Stock addition amount must be greater than zero",
     ):
-        product.add_stock(0)
+        product.add_stock(0, "2026-09-17T10:00:00")
 
     assert product.quantity == 10
     assert product.movements == []
@@ -441,7 +444,7 @@ def test_product_failed_adjust_stock_does_not_record_movement():
         ValueError,
         match="Stock quantity cannot be negative",
     ):
-        product.adjust_stock(-1)
+        product.adjust_stock(-1, "2026-09-17T10:00:00")
 
     assert product.quantity == 10
     assert product.movements == []
@@ -462,7 +465,7 @@ def test_product_failed_deduct_stock_does_not_record_movement():
         ValueError,
         match="Stock quantity cannot be negative",
     ):
-        product.deduct_stock(11)
+        product.deduct_stock(11, "2026-09-17T10:00:00")
 
     assert product.quantity == 10
     assert product.movements == []

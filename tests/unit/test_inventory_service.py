@@ -71,6 +71,7 @@ def test_stock_in_creates_stock_movement(tmp_path):
         assert movements[0].movement_type.value == "ADD"
         assert movements[0].quantity == 5
         assert movements[0].resulting_stock == 15
+        assert movements[0].created_at == "2026-09-16T20:00:00"
     finally:
         connection.close()
 
@@ -140,6 +141,7 @@ def test_adjust_stock_creates_stock_movement(tmp_path):
         assert movements[0].movement_type.value == "ADJUST"
         assert movements[0].quantity == 20
         assert movements[0].resulting_stock == 20
+        assert movements[0].created_at == "2026-09-16T20:00:00"
     finally:
         connection.close()
 
@@ -205,6 +207,7 @@ def test_stock_out_creates_stock_movement(tmp_path):
         assert movements[0].movement_type.value == "DEDUCT"
         assert movements[0].quantity == 3
         assert movements[0].resulting_stock == 7
+        assert movements[0].created_at == "2026-09-16T20:00:00"
     finally:
         connection.close()
 
