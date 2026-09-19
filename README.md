@@ -333,6 +333,18 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ## 📦 Release History
 
+### v0.5.1 — Sale Domain Model
+
+- Added the SaleLine domain entity
+- Added the Sale domain entity
+- Added validation for sale customers, dates, totals, and creation timestamps
+- Added validation for sale line products, quantities, and unit prices
+- Added domain integration coverage for sales containing multiple sale lines
+- Added tests for preserving sale line data within a sale
+- Verified the sale domain with 13 automated tests
+
+**Release result:** Sales are domain concepts.
+
 ### v0.5.0 — Inventory CLI and Regression
 
 - Added interactive inventory CLI workflows
