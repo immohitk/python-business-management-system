@@ -156,3 +156,77 @@ def test_sale_allows_zero_total_amount():
     )
 
     assert sale.total_amount == 0.0
+
+
+def test_sale_preserves_sale_line_data():
+    first_line = SaleLine(
+        product_id=1,
+        quantity=2,
+        unit_price=1000.0,
+    )
+    second_line = SaleLine(
+        product_id=2,
+        quantity=3,
+        unit_price=500.0,
+    )
+
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-19",
+        total_amount=3500.0,
+        created_at="2026-09-19T10:00:00",
+        lines=[first_line, second_line],
+    )
+
+    assert sale.lines[0].product_id == 1
+    assert sale.lines[0].quantity == 2
+    assert sale.lines[0].unit_price == 1000.0
+
+    assert sale.lines[1].product_id == 2
+    assert sale.lines[1].quantity == 3
+    assert sale.lines[1].unit_price == 500.0
+
+
+def test_sale_supports_multiple_distinct_products():
+    lines = [
+        SaleLine(
+            product_id=1,
+            quantity=1,
+            unit_price=1500.0,
+        ),
+        SaleLine(
+            product_id=2,
+            quantity=2,
+            unit_price=750.0,
+        ),
+        SaleLine(
+            product_id=3,
+            quantity=1,
+            unit_price=250.0,
+        ),
+    ]
+
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-19",
+        total_amount=3250.0,
+        created_at="2026-09-19T10:00:00",
+        lines=lines,
+    )
+
+    assert [line.product_id for line in sale.lines] == [1, 2, 3]
+    assert len(sale.lines) == 3
+
+
+def test_invalid_sale_line_cannot_be_created_for_sale():
+    with pytest.raises(
+        ValueError,
+        match="Sale line quantity must be greater than zero",
+    ):
+        SaleLine(
+            product_id=1,
+            quantity=0,
+            unit_price=1000.0,
+        )
