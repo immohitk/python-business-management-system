@@ -4,6 +4,8 @@ from domain.entities.sale_line import SaleLine
 from domain.rules.sale_rules import (
     validate_sale_created_at,
     validate_sale_customer_id,
+    validate_sale_date,
+    validate_sale_total_amount,
 )
 
 
@@ -18,4 +20,6 @@ class Sale:
 
     def __post_init__(self) -> None:
         validate_sale_customer_id(self.customer_id)
+        validate_sale_date(self.sale_date)
+        validate_sale_total_amount(self.total_amount)
         validate_sale_created_at(self.created_at)

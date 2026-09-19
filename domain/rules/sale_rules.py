@@ -21,3 +21,13 @@ def validate_sale_customer_id(customer_id: int) -> None:
 def validate_sale_created_at(created_at: str) -> None:
     if not created_at or not created_at.strip():
         raise ValueError("Sale created_at cannot be empty")
+
+
+def validate_sale_date(sale_date: str) -> None:
+    if not sale_date or not sale_date.strip():
+        raise ValueError("Sale date cannot be empty")
+
+
+def validate_sale_total_amount(total_amount: float) -> None:
+    if total_amount < 0:
+        raise ValueError("Sale total amount cannot be negative")

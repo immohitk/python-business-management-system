@@ -102,3 +102,57 @@ def test_sale_created_at_cannot_be_whitespace():
             total_amount=2400.0,
             created_at="   ",
         )
+
+
+def test_sale_date_cannot_be_empty():
+    with pytest.raises(
+        ValueError,
+        match="Sale date cannot be empty",
+    ):
+        Sale(
+            id=None,
+            customer_id=1,
+            sale_date="",
+            total_amount=2400.0,
+            created_at="2026-09-19T10:00:00",
+        )
+
+
+def test_sale_date_cannot_be_whitespace():
+    with pytest.raises(
+        ValueError,
+        match="Sale date cannot be empty",
+    ):
+        Sale(
+            id=None,
+            customer_id=1,
+            sale_date="   ",
+            total_amount=2400.0,
+            created_at="2026-09-19T10:00:00",
+        )
+
+
+def test_sale_total_amount_cannot_be_negative():
+    with pytest.raises(
+        ValueError,
+        match="Sale total amount cannot be negative",
+    ):
+        Sale(
+            id=None,
+            customer_id=1,
+            sale_date="2026-09-19",
+            total_amount=-1.0,
+            created_at="2026-09-19T10:00:00",
+        )
+
+
+def test_sale_allows_zero_total_amount():
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-19",
+        total_amount=0.0,
+        created_at="2026-09-19T10:00:00",
+    )
+
+    assert sale.total_amount == 0.0
