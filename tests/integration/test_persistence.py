@@ -135,7 +135,16 @@ def test_sale_sale_item_and_invoice_persistence(tmp_path):
         stored_items = sale_repository.get_items(sale.id)
         stored_invoice = invoice_repository.get_by_id(invoice.id)
 
-        assert stored_sale == sale
+        assert stored_sale is not None
+        assert stored_sale.id == sale.id
+        assert stored_sale.customer_id == sale.customer_id
+        assert stored_sale.sale_date == sale.sale_date
+        assert stored_sale.total_amount == sale.total_amount
+        assert stored_sale.created_at == sale.created_at
+        assert len(stored_sale.lines) == 1
+        assert stored_sale.lines[0].product_id == sale_item.product_id
+        assert stored_sale.lines[0].quantity == sale_item.quantity
+        assert stored_sale.lines[0].unit_price == sale_item.unit_price
         assert stored_items == [sale_item]
         assert stored_invoice == invoice
         assert stored_sale.customer_id == customer.id
@@ -274,7 +283,16 @@ def test_sale_data_survives_connection_reopen(tmp_path):
         stored_items = sale_repository.get_items(sale.id)
         stored_invoice = invoice_repository.get_by_id(invoice.id)
 
-        assert stored_sale == sale
+        assert stored_sale is not None
+        assert stored_sale.id == sale.id
+        assert stored_sale.customer_id == sale.customer_id
+        assert stored_sale.sale_date == sale.sale_date
+        assert stored_sale.total_amount == sale.total_amount
+        assert stored_sale.created_at == sale.created_at
+        assert len(stored_sale.lines) == 1
+        assert stored_sale.lines[0].product_id == sale_item.product_id
+        assert stored_sale.lines[0].quantity == sale_item.quantity
+        assert stored_sale.lines[0].unit_price == sale_item.unit_price
         assert stored_items == [sale_item]
         assert stored_invoice == invoice
         assert stored_sale.customer_id == customer.id
