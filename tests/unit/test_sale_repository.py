@@ -264,3 +264,46 @@ def test_get_sale_items_returns_only_items_for_requested_sale(tmp_path):
         assert second_sale_items == [second_item]
     finally:
         connection.close()
+
+
+def test_get_sale_by_id_reconstructs_sale_lines(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        sale = create_sale(connection)
+        repository.add(sale)
+
+        product_id = create_product(connection)
+
+        first_item = SaleItem(
+            id=None,
+            sale_id=sale.id,
+            product_id=product_id,
+            quantity=2,
+            unit_price=450.0,
+        )
+        second_item = SaleItem(
+            id=None,
+            sale_id=sale.id,
+            product_id=product_id,
+            quantity=1,
+            unit_price=300.0,
+        )
+
+        repository.add_item(first_item)
+        repository.add_item(second_item)
+
+        result = repository.get_by_id(sale.id)
+
+        assert result is not None
+        assert len(result.lines) == 2
+
+        assert result.lines[0].product_id == first_item.product_id
+        assert result.lines[0].quantity == first_item.quantity
+        assert result.lines[0].unit_price == first_item.unit_price
+
+        assert result.lines[1].product_id == second_item.product_id
+        assert result.lines[1].quantity == second_item.quantity
+        assert result.lines[1].unit_price == second_item.unit_price
+    finally:
+        connection.close()

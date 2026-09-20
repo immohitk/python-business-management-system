@@ -2,6 +2,7 @@ from sqlite3 import Connection
 
 from domain.entities.sale import Sale
 from domain.entities.sale_item import SaleItem
+from domain.entities.sale_line import SaleLine
 from infrastructure.repositories.base import Repository
 
 
@@ -51,12 +52,24 @@ class SaleRepository(Repository[Sale]):
         if row is None:
             return None
 
+        items = self.get_items(entity_id)
+
+        lines = [
+            SaleLine(
+                product_id=item.product_id,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+            )
+            for item in items
+        ]
+
         return Sale(
             id=row[0],
             customer_id=row[1],
             sale_date=row[2],
             total_amount=row[3],
             created_at=row[4],
+            lines=lines,
         )
 
     def get_all(self) -> list[Sale]:
