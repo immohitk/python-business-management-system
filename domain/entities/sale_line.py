@@ -17,3 +17,7 @@ class SaleLine:
         validate_sale_line_product_id(self.product_id)
         validate_sale_line_quantity(self.quantity)
         validate_sale_line_unit_price(self.unit_price)
+
+    @property
+    def subtotal(self) -> float:
+        return self.quantity * self.unit_price

@@ -71,3 +71,43 @@ def test_sale_line_allows_zero_unit_price():
     )
 
     assert sale_line.unit_price == 0
+
+
+def test_sale_line_subtotal_is_quantity_times_unit_price():
+    sale_line = SaleLine(
+        product_id=1,
+        quantity=3,
+        unit_price=500.0,
+    )
+
+    assert sale_line.subtotal == 1500.0
+
+
+def test_sale_line_subtotal_with_single_quantity():
+    sale_line = SaleLine(
+        product_id=1,
+        quantity=1,
+        unit_price=750.0,
+    )
+
+    assert sale_line.subtotal == 750.0
+
+
+def test_sale_line_subtotal_allows_zero_unit_price():
+    sale_line = SaleLine(
+        product_id=1,
+        quantity=5,
+        unit_price=0.0,
+    )
+
+    assert sale_line.subtotal == 0.0
+
+
+def test_sale_line_subtotal_supports_fractional_unit_price():
+    sale_line = SaleLine(
+        product_id=1,
+        quantity=3,
+        unit_price=99.50,
+    )
+
+    assert sale_line.subtotal == 298.50
