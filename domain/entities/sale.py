@@ -27,3 +27,6 @@ class Sale:
     @property
     def calculated_total(self) -> float:
         return sum(line.subtotal for line in self.lines)
+
+    def apply_calculated_total(self) -> None:
+        self.total_amount = self.calculated_total

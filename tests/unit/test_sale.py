@@ -299,3 +299,73 @@ def test_sale_calculated_total_is_zero_without_sale_lines():
     )
 
     assert sale.calculated_total == 0.0
+
+
+def test_sale_apply_calculated_total_updates_total_amount():
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-20",
+        total_amount=0.0,
+        created_at="2026-09-20T10:00:00",
+        lines=[
+            SaleLine(product_id=1, quantity=2, unit_price=1000.0),
+        ],
+    )
+
+    sale.apply_calculated_total()
+
+    assert sale.total_amount == 2000.0
+
+
+def test_sale_apply_calculated_total_supports_multiple_lines():
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-20",
+        total_amount=100.0,
+        created_at="2026-09-20T10:00:00",
+        lines=[
+            SaleLine(product_id=1, quantity=2, unit_price=1000.0),
+            SaleLine(product_id=2, quantity=1, unit_price=400.0),
+        ],
+    )
+
+    sale.apply_calculated_total()
+
+    assert sale.total_amount == 2400.0
+
+
+def test_sale_apply_calculated_total_sets_zero_for_empty_sale():
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-20",
+        total_amount=500.0,
+        created_at="2026-09-20T10:00:00",
+    )
+
+    sale.apply_calculated_total()
+
+    assert sale.total_amount == 0.0
+
+
+def test_sale_apply_calculated_total_does_not_modify_sale_lines():
+    lines = [
+        SaleLine(product_id=1, quantity=2, unit_price=1000.0),
+        SaleLine(product_id=2, quantity=1, unit_price=400.0),
+    ]
+
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-20",
+        total_amount=0.0,
+        created_at="2026-09-20T10:00:00",
+        lines=lines,
+    )
+
+    sale.apply_calculated_total()
+
+    assert sale.lines == lines
+    assert sale.calculated_total == 2400.0
