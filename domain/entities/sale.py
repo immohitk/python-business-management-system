@@ -23,3 +23,7 @@ class Sale:
         validate_sale_date(self.sale_date)
         validate_sale_total_amount(self.total_amount)
         validate_sale_created_at(self.created_at)
+
+    @property
+    def calculated_total(self) -> float:
+        return sum(line.subtotal for line in self.lines)

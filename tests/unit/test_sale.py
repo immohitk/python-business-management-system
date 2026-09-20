@@ -230,3 +230,72 @@ def test_invalid_sale_line_cannot_be_created_for_sale():
             quantity=0,
             unit_price=1000.0,
         )
+
+
+def test_sale_calculated_total_sums_sale_line_subtotals():
+    lines = [
+        SaleLine(
+            product_id=1,
+            quantity=2,
+            unit_price=1000.0,
+        ),
+        SaleLine(
+            product_id=2,
+            quantity=1,
+            unit_price=400.0,
+        ),
+    ]
+
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-19",
+        total_amount=2400.0,
+        created_at="2026-09-19T10:00:00",
+        lines=lines,
+    )
+
+    assert sale.calculated_total == 2400.0
+
+
+def test_sale_calculated_total_supports_multiple_lines():
+    lines = [
+        SaleLine(
+            product_id=1,
+            quantity=1,
+            unit_price=1500.0,
+        ),
+        SaleLine(
+            product_id=2,
+            quantity=2,
+            unit_price=750.0,
+        ),
+        SaleLine(
+            product_id=3,
+            quantity=1,
+            unit_price=250.0,
+        ),
+    ]
+
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-19",
+        total_amount=3250.0,
+        created_at="2026-09-19T10:00:00",
+        lines=lines,
+    )
+
+    assert sale.calculated_total == 3250.0
+
+
+def test_sale_calculated_total_is_zero_without_sale_lines():
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-19",
+        total_amount=0.0,
+        created_at="2026-09-19T10:00:00",
+    )
+
+    assert sale.calculated_total == 0.0
