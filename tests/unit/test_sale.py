@@ -369,3 +369,39 @@ def test_sale_apply_calculated_total_does_not_modify_sale_lines():
 
     assert sale.lines == lines
     assert sale.calculated_total == 2400.0
+
+
+def test_sale_calculated_total_supports_fractional_unit_prices():
+    sale = Sale(
+        id=None,
+        customer_id=1,
+        sale_date="2026-09-20",
+        total_amount=0.0,
+        created_at="2026-09-20T10:00:00",
+        lines=[
+            SaleLine(
+                product_id=1,
+                quantity=3,
+                unit_price=199.99,
+            ),
+            SaleLine(
+                product_id=2,
+                quantity=2,
+                unit_price=49.50,
+            ),
+        ],
+    )
+
+    assert sale.calculated_total == 698.97
+
+
+def test_sale_calculated_total_requires_valid_sale_lines():
+    with pytest.raises(
+        ValueError,
+        match="Sale line unit price cannot be negative",
+    ):
+        SaleLine(
+            product_id=1,
+            quantity=1,
+            unit_price=-100.0,
+        )
