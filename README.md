@@ -333,6 +333,18 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ## 📦 Release History
 
+### v0.5.2 — Sales Calculations
+
+- Added subtotal calculation for sale lines
+- Added calculated total support for sales with single and multiple sale lines
+- Added explicit application of calculated totals to persisted sale totals
+- Added pricing behavior without CLI coupling
+- Added calculation edge-case coverage for fractional unit prices
+- Added validation coverage for invalid sale-line pricing
+- Verified sales calculations with 22 automated unit tests
+
+**Release result:** Deterministic sales totals.
+
 ### v0.5.1 — Sale Domain Model
 
 - Added the SaleLine domain entity
