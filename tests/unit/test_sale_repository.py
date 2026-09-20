@@ -226,3 +226,41 @@ def test_get_sale_by_id_preserves_sale_data(tmp_path):
         assert result.created_at == sale.created_at
     finally:
         connection.close()
+
+
+def test_get_sale_items_returns_only_items_for_requested_sale(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        first_sale = create_sale(connection)
+        second_sale = create_sale(connection)
+        repository.add(first_sale)
+        repository.add(second_sale)
+
+        product_id = create_product(connection)
+
+        first_item = SaleItem(
+            id=None,
+            sale_id=first_sale.id,
+            product_id=product_id,
+            quantity=2,
+            unit_price=450.0,
+        )
+        second_item = SaleItem(
+            id=None,
+            sale_id=second_sale.id,
+            product_id=product_id,
+            quantity=1,
+            unit_price=300.0,
+        )
+
+        repository.add_item(first_item)
+        repository.add_item(second_item)
+
+        first_sale_items = repository.get_items(first_sale.id)
+        second_sale_items = repository.get_items(second_sale.id)
+
+        assert first_sale_items == [first_item]
+        assert second_sale_items == [second_item]
+    finally:
+        connection.close()
