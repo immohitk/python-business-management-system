@@ -331,6 +331,17 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.5.3 — Sales Persistence
+
+- Added sale persistence verification
+- Preserved sale-line relationships through persistence
+- Reconstructed persisted sales with their associated sale lines
+- Added integration coverage for sale and sale-item persistence
+- Verified sale reconstruction after database connection reopen
+- Updated persistence tests for reconstructed sale-line data
+
+**Release result:** Persisted sales can be reconstructed with their sale-line relationships.
+
 ## 📦 Release History
 
 ### v0.5.2 — Sales Calculations
