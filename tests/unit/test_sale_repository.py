@@ -207,3 +207,22 @@ def test_get_sale_items(tmp_path):
         assert result == [first_item, second_item]
     finally:
         connection.close()
+
+
+def test_get_sale_by_id_preserves_sale_data(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        sale = create_sale(connection)
+        repository.add(sale)
+
+        result = repository.get_by_id(sale.id)
+
+        assert result is not None
+        assert result.id == sale.id
+        assert result.customer_id == sale.customer_id
+        assert result.sale_date == sale.sale_date
+        assert result.total_amount == sale.total_amount
+        assert result.created_at == sale.created_at
+    finally:
+        connection.close()
