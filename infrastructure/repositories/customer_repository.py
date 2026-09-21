@@ -2,6 +2,7 @@ from sqlite3 import Connection
 
 from domain.entities.customer import Customer
 from infrastructure.repositories.base import Repository
+from infrastructure.database.transaction import commit_if_needed
 
 
 class CustomerRepository(Repository[Customer]):
@@ -32,7 +33,7 @@ class CustomerRepository(Repository[Customer]):
         )
 
         entity.id = cursor.lastrowid
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def get_by_id(self, entity_id: int) -> Customer | None:
         row = self.connection.execute(
@@ -97,4 +98,4 @@ class CustomerRepository(Repository[Customer]):
             """,
             (entity_id,),
         )
-        self.connection.commit()
+        commit_if_needed(self.connection)

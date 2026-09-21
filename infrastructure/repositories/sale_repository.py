@@ -4,6 +4,7 @@ from domain.entities.sale import Sale
 from domain.entities.sale_item import SaleItem
 from domain.entities.sale_line import SaleLine
 from infrastructure.repositories.base import Repository
+from infrastructure.database.transaction import commit_if_needed
 
 
 class SaleRepository(Repository[Sale]):
@@ -32,7 +33,7 @@ class SaleRepository(Repository[Sale]):
         )
 
         entity.id = cursor.lastrowid
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def get_by_id(self, entity_id: int) -> Sale | None:
         row = self.connection.execute(
@@ -105,7 +106,7 @@ class SaleRepository(Repository[Sale]):
             """,
             (entity_id,),
         )
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def add_item(self, entity: SaleItem) -> None:
         cursor = self.connection.execute(
@@ -127,7 +128,7 @@ class SaleRepository(Repository[Sale]):
         )
 
         entity.id = cursor.lastrowid
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def get_items(self, sale_id: int) -> list[SaleItem]:
         rows = self.connection.execute(

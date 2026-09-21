@@ -2,6 +2,7 @@ from sqlite3 import Connection
 
 from domain.entities.supplier import Supplier
 from infrastructure.repositories.base import Repository
+from infrastructure.database.transaction import commit_if_needed
 
 
 class SupplierRepository(Repository[Supplier]):
@@ -32,7 +33,7 @@ class SupplierRepository(Repository[Supplier]):
         )
 
         entity.id = cursor.lastrowid
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def get_by_id(self, entity_id: int) -> Supplier | None:
         row = self.connection.execute(
@@ -97,4 +98,4 @@ class SupplierRepository(Repository[Supplier]):
             """,
             (entity_id,),
         )
-        self.connection.commit()
+        commit_if_needed(self.connection)

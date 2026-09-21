@@ -3,6 +3,7 @@ from sqlite3 import Connection
 from domain.entities.product import Product
 from domain.entities.stock_movement import StockMovement, StockMovementType
 from infrastructure.repositories.base import Repository
+from infrastructure.database.transaction import commit_if_needed
 
 
 class ProductRepository(Repository[Product]):
@@ -35,7 +36,7 @@ class ProductRepository(Repository[Product]):
         )
 
         entity.id = cursor.lastrowid
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def update(self, entity: Product) -> None:
         self.connection.execute(
@@ -60,7 +61,7 @@ class ProductRepository(Repository[Product]):
                 entity.id,
             ),
         )
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
 
     def get_by_id(self, entity_id: int) -> Product | None:
@@ -132,7 +133,7 @@ class ProductRepository(Repository[Product]):
             """,
             (entity_id,),
         )
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def _get_movements(self, product_id: int) -> list[StockMovement]:
         rows = self.connection.execute(

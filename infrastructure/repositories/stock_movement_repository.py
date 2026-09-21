@@ -2,6 +2,7 @@ from sqlite3 import Connection
 
 from domain.entities.stock_movement import StockMovement, StockMovementType
 from infrastructure.repositories.base import Repository
+from infrastructure.database.transaction import commit_if_needed
 
 
 class StockMovementRepository(Repository[StockMovement]):
@@ -68,7 +69,7 @@ class StockMovementRepository(Repository[StockMovement]):
             """,
             (entity_id,),
         )
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def add_movement(
         self,
@@ -94,7 +95,7 @@ class StockMovementRepository(Repository[StockMovement]):
                 entity.created_at,
             ),
         )
-        self.connection.commit()
+        commit_if_needed(self.connection)
 
     def get_movements(self, product_id: int) -> list[StockMovement]:
         rows = self.connection.execute(
