@@ -325,11 +325,23 @@ The interactive inventory workflow currently supports:
 
 Inventory CLI operations use the application service layer rather than accessing the database directly. Inventory changes are persisted through the repository layer and can be traced through timestamped stock movement history.
 
-Sales and invoicing workflows will also be implemented progressively in future releases.
+Core sales creation and inventory deduction workflows are now integrated through the application service layer, with atomic transaction handling for sale and stock operations.
 
 Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
 
 ---
+
+### v0.5.4 — Sale + Inventory Transaction
+
+- Added database transaction foundation for coordinated writes
+- Added sale creation workflow through the application service layer
+- Integrated sale creation with inventory stock deduction
+- Added persistent `DEDUCT` stock movements for sales
+- Added atomic rollback when stock deduction fails
+- Verified sale, sale-item, product, and stock-movement rollback behavior
+- Verified the complete project with 283 automated tests
+
+**Release result:** Core sale and inventory transactions are reliable.
 
 ### v0.5.3 — Sales Persistence
 
