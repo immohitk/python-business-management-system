@@ -302,6 +302,17 @@ The inventory domain currently supports:
 - Timestamped stock movement history
 - Persistent stock movement recording
 
+### Sales
+
+The sales CLI currently supports:
+
+- Create sale
+- Add multiple sale lines
+- Calculate sale totals
+- Deduct inventory during sale creation
+- List sales
+- Atomic rollback when inventory deduction fails
+
 Inventory operations are coordinated through the application service layer, which applies the domain rules and persists the resulting product and stock movement changes.
 
 The inventory service currently supports:
@@ -330,6 +341,19 @@ Core sales creation and inventory deduction workflows are now integrated through
 Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
 
 ---
+
+### v0.6.0 — Sales CLI and Regression
+
+- Added interactive sales CLI foundation
+- Added sale creation through the CLI
+- Added support for creating sales with multiple sale lines
+- Added sale listing through the CLI
+- Integrated sale creation with inventory stock deduction
+- Added CLI integration coverage for successful sales
+- Added rollback verification for insufficient stock
+- Verified the complete application with 299 automated tests
+
+**Release result:** Working sales workflow with inventory integration.
 
 ### v0.5.4 — Sale + Inventory Transaction
 
