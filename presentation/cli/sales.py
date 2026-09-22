@@ -83,6 +83,25 @@ def create_sale(service: SaleService) -> None:
         print(str(exc))
 
 
+def list_sales(service: SaleService) -> None:
+    print()
+    print("Sales List")
+    print()
+
+    sales = service.get_sales()
+
+    if not sales:
+        print("No sales found.")
+        return
+
+    for sale in sales:
+        print(f"ID: {sale.id}")
+        print(f"Customer ID: {sale.customer_id}")
+        print(f"Sale Date: {sale.sale_date}")
+        print(f"Total: {sale.total_amount:.2f}")
+        print()
+
+
 def handle_sales(service: SaleService | None = None) -> None:
     owns_connection = service is None
 
@@ -106,7 +125,7 @@ def handle_sales(service: SaleService | None = None) -> None:
             if choice == "1":
                 create_sale(service)
             elif choice == "2":
-                print("Sale listing will be implemented in the next topic.")
+                list_sales(service)
             else:
                 print("Invalid choice. Please select a valid option.")
     finally:

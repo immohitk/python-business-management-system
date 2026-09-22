@@ -39,3 +39,7 @@ class SaleService:
                 )
 
         return sale
+
+
+    def get_sales(self) -> list[Sale]:
+        return self.sale_repository.get_all()

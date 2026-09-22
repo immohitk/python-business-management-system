@@ -413,3 +413,46 @@ def test_create_sale_rolls_back_sale_items_and_stock_on_failure(tmp_path):
         assert stock_movement_repository.get_movements(2) == []
     finally:
         connection.close()
+
+
+def test_get_sales_returns_all_sales(tmp_path):
+    (
+        service,
+        sale_repository,
+        _,
+        _,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        first_sale = Sale(
+            id=None,
+            customer_id=1,
+            sale_date="2026-09-21",
+            total_amount=100.0,
+            created_at="2026-09-21T20:00:00",
+            lines=[],
+        )
+        second_sale = Sale(
+            id=None,
+            customer_id=2,
+            sale_date="2026-09-22",
+            total_amount=200.0,
+            created_at="2026-09-22T20:00:00",
+            lines=[],
+        )
+
+        sale_repository.add(first_sale)
+        sale_repository.add(second_sale)
+
+        sales = service.get_sales()
+
+        assert len(sales) == 2
+        assert sales[0].id == first_sale.id
+        assert sales[0].customer_id == 1
+        assert sales[0].total_amount == 100.0
+        assert sales[1].id == second_sale.id
+        assert sales[1].customer_id == 2
+        assert sales[1].total_amount == 200.0
+    finally:
+        connection.close()

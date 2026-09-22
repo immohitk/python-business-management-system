@@ -12,7 +12,12 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
-from presentation.cli.sales import create_sale, create_sale_service, handle_sales
+from presentation.cli.sales import (
+    create_sale,
+    create_sale_service,
+    handle_sales,
+    list_sales,
+)
 
 
 def test_create_sale_service_builds_sale_service():
@@ -252,5 +257,123 @@ def test_create_sale_integrates_with_sale_service_and_inventory(
 
         assert "Sale created successfully" in captured.out
         assert "total: 900.00" in captured.out
+    finally:
+        connection.close()
+
+
+def test_list_sales_prints_sales(capsys):
+    service = Mock()
+    service.get_sales.return_value = [
+        Sale(
+            id=1,
+            customer_id=1,
+            sale_date="2026-09-22",
+            total_amount=900.0,
+            created_at="2026-09-22T18:00:00",
+            lines=[],
+        ),
+        Sale(
+            id=2,
+            customer_id=2,
+            sale_date="2026-09-23",
+            total_amount=1500.0,
+            created_at="2026-09-23T18:00:00",
+            lines=[],
+        ),
+    ]
+
+    list_sales(service)
+
+    captured = capsys.readouterr()
+
+    assert "Sales List" in captured.out
+    assert "ID: 1" in captured.out
+    assert "Customer ID: 1" in captured.out
+    assert "Sale Date: 2026-09-22" in captured.out
+    assert "Total: 900.00" in captured.out
+    assert "ID: 2" in captured.out
+    assert "Customer ID: 2" in captured.out
+    assert "Sale Date: 2026-09-23" in captured.out
+    assert "Total: 1500.00" in captured.out
+
+
+def test_list_sales_prints_empty_message(capsys):
+    service = Mock()
+    service.get_sales.return_value = []
+
+    list_sales(service)
+
+    captured = capsys.readouterr()
+
+    assert "Sales List" in captured.out
+    assert "No sales found." in captured.out
+
+
+def test_handle_sales_lists_sales(capsys):
+    service = Mock()
+    service.get_sales.return_value = [
+        Sale(
+            id=1,
+            customer_id=1,
+            sale_date="2026-09-22",
+            total_amount=900.0,
+            created_at="2026-09-22T18:00:00",
+            lines=[],
+        )
+    ]
+
+    with patch(
+        "builtins.input",
+        side_effect=["2", "0"],
+    ):
+        handle_sales(service)
+
+    captured = capsys.readouterr()
+
+    assert "Sales List" in captured.out
+    assert "ID: 1" in captured.out
+    assert "Total: 900.00" in captured.out
+    service.get_sales.assert_called_once()
+
+
+def test_list_sales_integrates_with_database(tmp_path, capsys):
+    database_path = tmp_path / "test.db"
+    initialize_database(database_path)
+    connection = get_connection(database_path)
+
+    try:
+        sale_repository = SaleRepository(connection)
+        product_repository = ProductRepository(connection)
+        stock_movement_repository = StockMovementRepository(connection)
+
+        inventory_service = InventoryService(
+            product_repository,
+            stock_movement_repository,
+        )
+        service = SaleService(
+            sale_repository,
+            inventory_service,
+        )
+
+        sale = Sale(
+            id=None,
+            customer_id=5,
+            sale_date="2026-09-22",
+            total_amount=1250.0,
+            created_at="2026-09-22T19:00:00",
+            lines=[],
+        )
+
+        sale_repository.add(sale)
+
+        list_sales(service)
+
+        captured = capsys.readouterr()
+
+        assert "Sales List" in captured.out
+        assert f"ID: {sale.id}" in captured.out
+        assert "Customer ID: 5" in captured.out
+        assert "Sale Date: 2026-09-22" in captured.out
+        assert "Total: 1250.00" in captured.out
     finally:
         connection.close()
