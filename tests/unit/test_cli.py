@@ -41,13 +41,18 @@ def test_handle_choice_inventory(capsys, monkeypatch):
     assert "Inventory" in captured.out
 
 
-def test_handle_choice_sales(capsys):
+def test_handle_choice_sales(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
     result = handle_choice("3")
 
     captured = capsys.readouterr()
 
     assert result is True
-    assert "Sales menu" in captured.out
+    assert "Sales" in captured.out
+    assert "1. Create sale" in captured.out
+    assert "2. List sales" in captured.out
+    assert "0. Back" in captured.out
 
 
 def test_handle_choice_customers(capsys, monkeypatch):
@@ -110,12 +115,17 @@ def test_handle_inventory(capsys):
     assert "Inventory menu" in captured.out
 
 
-def test_handle_sales(capsys):
+def test_handle_sales(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
     handle_sales()
 
     captured = capsys.readouterr()
 
-    assert "Sales menu" in captured.out
+    assert "Sales" in captured.out
+    assert "1. Create sale" in captured.out
+    assert "2. List sales" in captured.out
+    assert "0. Back" in captured.out
 
 
 def test_handle_customers(capsys, monkeypatch):
