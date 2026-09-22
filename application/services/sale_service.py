@@ -1,3 +1,4 @@
+from application.services.inventory_service import InventoryService
 from domain.entities.sale import Sale
 from domain.entities.sale_item import SaleItem
 from infrastructure.repositories.sale_repository import SaleRepository
@@ -6,8 +7,13 @@ from infrastructure.repositories.sale_repository import SaleRepository
 class SaleService:
     """Application service for sale operations."""
 
-    def __init__(self, sale_repository: SaleRepository) -> None:
+    def __init__(
+        self,
+        sale_repository: SaleRepository,
+        inventory_service: InventoryService,
+    ) -> None:
         self.sale_repository = sale_repository
+        self.inventory_service = inventory_service
 
     def create_sale(self, sale: Sale) -> Sale:
         sale.apply_calculated_total()
@@ -23,5 +29,11 @@ class SaleService:
                 unit_price=line.unit_price,
             )
             self.sale_repository.add_item(sale_item)
+
+            self.inventory_service.stock_out(
+                product_id=line.product_id,
+                amount=line.quantity,
+                created_at=sale.created_at,
+            )
 
         return sale
