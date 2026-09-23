@@ -1,6 +1,7 @@
 import pytest
 
 from domain.entities.invoice import Invoice
+from domain.entities.invoice_line import InvoiceLine
 
 
 def create_valid_invoice() -> Invoice:
@@ -80,3 +81,24 @@ def test_invoice_rejects_empty_created_at(created_at: str) -> None:
             total_amount=1500.0,
             created_at=created_at,
         )
+
+
+def test_invoice_can_calculate_total_from_lines() -> None:
+    invoice = Invoice(
+        id=None,
+        sale_id=1,
+        invoice_number="INV-001",
+        invoice_date="2026-09-23",
+        total_amount=0.0,
+        created_at="2026-09-23T20:00:00",
+        lines=[
+            InvoiceLine(product_id=1, quantity=2, unit_price=500.0),
+            InvoiceLine(product_id=2, quantity=1, unit_price=250.0),
+        ],
+    )
+
+    assert invoice.calculated_total == 1250.0
+
+    invoice.apply_calculated_total()
+
+    assert invoice.total_amount == 1250.0
