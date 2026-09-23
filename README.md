@@ -342,6 +342,20 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.6.1 — Invoice Domain
+
+- Added the Invoice domain entity
+- Added the InvoiceLine domain entity
+- Linked invoice lines to invoice totals
+- Added invoice-to-sale relationship through `sale_id`
+- Added invoice number validation
+- Added invoice line validation for products, quantities, and unit prices
+- Added invoice total calculation from invoice lines
+- Added focused domain tests for invoices and invoice lines
+- Verified the complete project with 316 automated tests
+
+**Release result:** Invoice concepts are established as domain entities ready for persistence and generation workflows.
+
 ### v0.6.0 — Sales CLI and Regression
 
 - Added interactive sales CLI foundation
