@@ -16,3 +16,8 @@ def validate_invoice_total_amount(total_amount: float) -> None:
 def validate_invoice_created_at(created_at: str) -> None:
     if not created_at or not created_at.strip():
         raise ValueError("Invoice created_at cannot be empty")
+
+
+def validate_invoice_number(invoice_number: str) -> None:
+    if not invoice_number or not invoice_number.strip():
+        raise ValueError("Invoice number cannot be empty")

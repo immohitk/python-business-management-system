@@ -102,3 +102,16 @@ def test_invoice_can_calculate_total_from_lines() -> None:
     invoice.apply_calculated_total()
 
     assert invoice.total_amount == 1250.0
+
+
+@pytest.mark.parametrize("invoice_number", ["", "   "])
+def test_invoice_rejects_empty_invoice_number(invoice_number: str) -> None:
+    with pytest.raises(ValueError, match="Invoice number cannot be empty"):
+        Invoice(
+            id=None,
+            sale_id=1,
+            invoice_number=invoice_number,
+            invoice_date="2026-09-23",
+            total_amount=1500.0,
+            created_at="2026-09-23T20:00:00",
+        )

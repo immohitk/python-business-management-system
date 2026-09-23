@@ -4,6 +4,7 @@ from domain.entities.invoice_line import InvoiceLine
 from domain.rules.invoice_rules import (
     validate_invoice_created_at,
     validate_invoice_date,
+    validate_invoice_number,
     validate_invoice_sale_id,
     validate_invoice_total_amount,
 )
@@ -24,6 +25,7 @@ class Invoice:
         validate_invoice_date(self.invoice_date)
         validate_invoice_total_amount(self.total_amount)
         validate_invoice_created_at(self.created_at)
+        validate_invoice_number(self.invoice_number)
 
     @property
     def calculated_total(self) -> float:
