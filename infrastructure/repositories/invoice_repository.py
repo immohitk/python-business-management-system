@@ -35,6 +35,21 @@ class InvoiceRepository(Repository[Invoice]):
         entity.id = cursor.lastrowid
         commit_if_needed(self.connection)
 
+    def get_latest_invoice_number(self) -> str | None:
+        row = self.connection.execute(
+            """
+            SELECT invoice_number
+            FROM invoices
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        ).fetchone()
+
+        if row is None:
+            return None
+
+        return row[0]
+
     def get_by_id(self, entity_id: int) -> Invoice | None:
         row = self.connection.execute(
             """

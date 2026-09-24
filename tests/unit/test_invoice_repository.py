@@ -148,3 +148,30 @@ def test_delete_invoice(tmp_path):
         assert repository.get_by_id(invoice.id) is None
     finally:
         connection.close()
+
+
+def test_get_latest_invoice_number_returns_none_for_empty_database(tmp_path):
+    repository, _, connection = create_repositories(tmp_path)
+
+    try:
+        assert repository.get_latest_invoice_number() is None
+    finally:
+        connection.close()
+
+
+def test_get_latest_invoice_number_returns_latest_number(tmp_path):
+    repository, _, connection = create_repositories(tmp_path)
+
+    try:
+        first_invoice = create_invoice(connection)
+        first_invoice.invoice_number = "INV-000001"
+
+        second_invoice = create_invoice(connection)
+        second_invoice.invoice_number = "INV-000002"
+
+        repository.add(first_invoice)
+        repository.add(second_invoice)
+
+        assert repository.get_latest_invoice_number() == "INV-000002"
+    finally:
+        connection.close()
