@@ -342,6 +342,15 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.6.2 — Stable Invoice Numbering
+
+- Added predictable sequential invoice numbers.
+- Invoice numbers use the `INV-000001` format.
+- Added persistent invoice number generation.
+- Added sequencing tests for consecutive invoice creation.
+- Added uniqueness tests for persisted invoice numbers.
+- Documented MVP invoice numbering limitations.
+
 ### v0.6.1 — Invoice Domain
 
 - Added the Invoice domain entity
