@@ -1,5 +1,5 @@
 from infrastructure.repositories.invoice_repository import InvoiceRepository
-
+from domain.entities.invoice import Invoice
 
 class InvoiceService:
     """Application service for invoice operations."""
@@ -24,3 +24,8 @@ class InvoiceService:
         sequence = int(sequence_text)
 
         return f"INV-{sequence + 1:06d}"
+
+    def create_invoice(self, invoice: Invoice) -> Invoice:
+        invoice.invoice_number = self.generate_invoice_number()
+        self.invoice_repository.add(invoice)
+        return invoice

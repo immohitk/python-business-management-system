@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from domain.entities.invoice import Invoice
 from application.services.invoice_service import InvoiceService
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
@@ -131,5 +132,53 @@ def test_generate_invoice_number_rejects_invalid_existing_format(tmp_path):
             assert str(exc) == "Invalid invoice number format"
         else:
             raise AssertionError("Expected invalid invoice number to fail.")
+    finally:
+        connection.close()
+
+
+def test_create_invoice_generates_and_persists_invoice_number(tmp_path):
+    service, connection = create_service(tmp_path)
+
+    try:
+        connection.execute(
+            """
+            INSERT INTO customers (name, created_at)
+            VALUES (?, ?)
+            """,
+            ("Test Customer", "2026-09-24T19:00:00"),
+        )
+
+        connection.execute(
+            """
+            INSERT INTO sales (
+                customer_id,
+                sale_date,
+                total_amount,
+                created_at
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (1, "2026-09-24", 500.0, "2026-09-24T19:00:00"),
+        )
+        connection.commit()
+
+        invoice = Invoice(
+            id=None,
+            sale_id=1,
+            invoice_number="TEMP",
+            invoice_date="2026-09-24",
+            total_amount=500.0,
+            created_at="2026-09-24T19:00:00",
+        )
+
+        result = service.create_invoice(invoice)
+
+        assert result.id is not None
+        assert result.invoice_number == "INV-000001"
+
+        stored_invoice = InvoiceRepository(connection).get_by_id(result.id)
+
+        assert stored_invoice is not None
+        assert stored_invoice.invoice_number == "INV-000001"
     finally:
         connection.close()
