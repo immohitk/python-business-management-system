@@ -342,6 +342,13 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.6.3 — Invoice Persistence
+
+- Verified invoice header persistence through the repository layer.
+- Added explicit integration coverage for invoice header retrieval.
+- Verified invoice persistence after database connection reopen.
+- Confirmed persisted invoice details can be retrieved correctly.
+
 ### v0.6.2 — Stable Invoice Numbering
 
 - Added predictable sequential invoice numbers.
