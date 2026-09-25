@@ -147,6 +147,10 @@ def test_sale_sale_item_and_invoice_persistence(tmp_path):
         assert stored_sale.lines[0].unit_price == sale_item.unit_price
         assert stored_items == [sale_item]
         assert stored_invoice == invoice
+        assert stored_invoice.invoice_number == invoice.invoice_number
+        assert stored_invoice.invoice_date == invoice.invoice_date
+        assert stored_invoice.total_amount == invoice.total_amount
+        assert stored_invoice.created_at == invoice.created_at
         assert stored_sale.customer_id == customer.id
         assert stored_items[0].product_id == product.id
         assert stored_invoice.sale_id == sale.id
