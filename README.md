@@ -342,6 +342,15 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.6.4 — Invoice Generation & Formatting
+
+- Added a presentation model for invoice output.
+- Added a dedicated invoice formatter for readable invoice generation.
+- Added an application service to build invoice presentation data from persisted records.
+- Added invoice viewing through the CLI.
+- Added SQLite integration coverage for end-to-end invoice presentation.
+- Verified the complete test suite with 346 passing tests.
+
 ### v0.6.3 — Invoice Persistence
 
 - Verified invoice header persistence through the repository layer.
