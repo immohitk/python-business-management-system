@@ -162,3 +162,16 @@ def test_handle_inventory(capsys, monkeypatch):
     assert "4. Stock out" in captured.out
     assert "5. View movement history" in captured.out
     assert "0. Back" in captured.out
+
+
+def test_handle_choice_invoices(capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+
+    result = handle_choice("6")
+
+    captured = capsys.readouterr()
+
+    assert result is True
+    assert "Invoices" in captured.out
+    assert "1. Show invoice" in captured.out
+    assert "0. Back" in captured.out
