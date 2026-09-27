@@ -6,6 +6,8 @@ from application.invoice.presentation import (
     InvoicePresentation,
 )
 from presentation.cli.invoices import (
+    create_invoice_creation_service,
+    create_invoice_from_sale,
     create_invoice_presentation_service,
     handle_invoices,
     show_invoice,
@@ -118,7 +120,7 @@ def test_handle_invoices_shows_invoice(capsys):
 
     with patch(
         "builtins.input",
-        side_effect=["1", "1", "0"],
+        side_effect=["2", "1", "0"],
     ):
         handle_invoices(service)
 
@@ -143,3 +145,83 @@ def test_handle_invoices_handles_invalid_choice(capsys):
     captured = capsys.readouterr()
 
     assert "Invalid choice. Please select a valid option." in captured.out
+
+
+def test_create_invoice_creation_service_builds_service():
+    service, connection = create_invoice_creation_service()
+
+    try:
+        assert service.sale_repository is not None
+        assert service.invoice_service is not None
+        assert service.invoice_service.invoice_repository is not None
+        assert service.sale_repository.connection is connection
+        assert service.invoice_service.invoice_repository.connection is connection
+    finally:
+        connection.close()
+
+
+def test_create_invoice_from_sale(capsys):
+    service = Mock()
+    invoice = Mock()
+    invoice.invoice_number = "INV-000001"
+    service.create_invoice_for_sale.return_value = invoice
+
+    with patch("builtins.input", return_value="10"):
+        create_invoice_from_sale(service)
+
+    captured = capsys.readouterr()
+
+    assert "Create Invoice From Sale" in captured.out
+    assert "Invoice created successfully: INV-000001" in captured.out
+    service.create_invoice_for_sale.assert_called_once_with(10)
+
+
+def test_create_invoice_from_sale_handles_missing_sale(capsys):
+    service = Mock()
+    service.create_invoice_for_sale.side_effect = ValueError(
+        "Sale not found"
+    )
+
+    with patch("builtins.input", return_value="999"):
+        create_invoice_from_sale(service)
+
+    captured = capsys.readouterr()
+
+    assert "Sale not found" in captured.out
+    service.create_invoice_for_sale.assert_called_once_with(999)
+
+
+def test_create_invoice_from_sale_handles_invalid_sale_id(capsys):
+    service = Mock()
+
+    with patch("builtins.input", return_value="invalid"):
+        create_invoice_from_sale(service)
+
+    captured = capsys.readouterr()
+
+    assert "invalid literal" in captured.out
+    service.create_invoice_for_sale.assert_not_called()
+
+
+def test_handle_invoices_creates_invoice_from_sale(capsys):
+    service = Mock()
+    invoice_creation_service = Mock()
+
+    invoice = Mock()
+    invoice.invoice_number = "INV-000001"
+    invoice_creation_service.create_invoice_for_sale.return_value = invoice
+
+    with patch(
+        "builtins.input",
+        side_effect=["1", "10", "0"],
+    ):
+        handle_invoices(
+            service=service,
+            invoice_creation_service=invoice_creation_service,
+        )
+
+    captured = capsys.readouterr()
+
+    assert "Create Invoice From Sale" in captured.out
+    assert "Invoice created successfully: INV-000001" in captured.out
+    invoice_creation_service.create_invoice_for_sale.assert_called_once_with(10)
