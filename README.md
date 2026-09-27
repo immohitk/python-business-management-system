@@ -342,6 +342,15 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.7.0 — Invoice CLI and Regression
+
+- Added a dedicated application workflow for creating invoices from existing sales.
+- Added invoice creation from a sale through the CLI.
+- Connected persisted sales with invoice creation and invoice numbering.
+- Added end-to-end integration coverage for the sales-to-invoice workflow.
+- Updated invoice CLI regression coverage for the new workflow.
+- Verified the complete test suite with 355 passing tests.
+
 ### v0.6.4 — Invoice Generation & Formatting
 
 - Added a presentation model for invoice output.
