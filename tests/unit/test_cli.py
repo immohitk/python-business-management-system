@@ -173,5 +173,6 @@ def test_handle_choice_invoices(capsys, monkeypatch):
 
     assert result is True
     assert "Invoices" in captured.out
-    assert "1. Show invoice" in captured.out
+    assert "1. Create invoice from sale" in captured.out
+    assert "2. Show invoice" in captured.out
     assert "0. Back" in captured.out
