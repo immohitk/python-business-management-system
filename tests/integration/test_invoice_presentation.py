@@ -4,6 +4,8 @@ from application.invoice.formatter import InvoiceFormatter
 from application.services.invoice_presentation_service import (
     InvoicePresentationService,
 )
+from application.services.invoice_service import InvoiceService
+from application.services.sale_invoice_service import SaleInvoiceService
 from domain.entities.customer import Customer
 from domain.entities.invoice import Invoice
 from domain.entities.product import Product
@@ -159,5 +161,96 @@ def test_invoice_presentation_integrates_with_database(
         assert "1000.00" in output
         assert "5000.00" in output
         assert "105000.00" in output
+    finally:
+        connection.close()
+
+
+def test_sale_to_invoice_workflow_integrates_with_database(
+    tmp_path: Path,
+):
+    (
+        presentation_service,
+        formatter,
+        invoice_repository,
+        sale_repository,
+        customer_repository,
+        product_repository,
+        connection,
+    ) = create_test_environment(tmp_path)
+
+    try:
+        customer = Customer(
+            id=None,
+            name="XYZ Enterprises",
+            phone="9876543210",
+            email="xyz@example.com",
+            address="45 MG Road, Bengaluru",
+            created_at="2026-09-25T10:00:00",
+        )
+        customer_repository.add(customer)
+
+        laptop = Product(
+            id=None,
+            name="Laptop",
+            description="Business laptop",
+            sku="LAP-001",
+            price=50000.0,
+            quantity=10,
+            created_at="2026-09-25T09:00:00",
+        )
+        product_repository.add(laptop)
+
+        sale = Sale(
+            id=None,
+            customer_id=customer.id,
+            sale_date="2026-09-25",
+            total_amount=100000.0,
+            created_at="2026-09-25T10:00:00",
+        )
+        sale_repository.add(sale)
+
+        sale_repository.add_item(
+            SaleItem(
+                id=None,
+                sale_id=sale.id,
+                product_id=laptop.id,
+                quantity=2,
+                unit_price=50000.0,
+            )
+        )
+
+        invoice_service = InvoiceService(invoice_repository)
+        sale_invoice_service = SaleInvoiceService(
+            sale_repository=sale_repository,
+            invoice_service=invoice_service,
+        )
+
+        invoice = sale_invoice_service.create_invoice_for_sale(sale.id)
+
+        assert invoice.id is not None
+        assert invoice.sale_id == sale.id
+        assert invoice.invoice_number == "INV-000001"
+        assert invoice.invoice_date == "2026-09-25"
+        assert invoice.total_amount == 100000.0
+
+        stored_invoice = invoice_repository.get_by_id(invoice.id)
+
+        assert stored_invoice is not None
+        assert stored_invoice.invoice_number == "INV-000001"
+        assert stored_invoice.sale_id == sale.id
+
+        presentation = presentation_service.get_invoice_presentation(
+            invoice.id
+        )
+        output = formatter.format(presentation)
+
+        assert "TAX INVOICE" in output
+        assert "INV-000001" in output
+        assert "XYZ Enterprises" in output
+        assert "45 MG Road, Bengaluru" in output
+        assert "Laptop" in output
+        assert "LAP-001" in output
+        assert "50000.00" in output
+        assert "100000.00" in output
     finally:
         connection.close()
