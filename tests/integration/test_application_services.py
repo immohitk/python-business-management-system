@@ -5,10 +5,14 @@ from application.services.customer_service import CustomerService
 from application.services.product_service import ProductService
 from application.services.supplier_service import SupplierService
 from application.services.inventory_service import InventoryService
+from application.services.sale_service import SaleService
 from domain.entities.customer import Customer
 from domain.entities.product import Product
 from domain.entities.supplier import Supplier
 from domain.entities.stock_movement import StockMovementType
+from domain.entities.sale import Sale
+from domain.entities.sale_line import SaleLine
+from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.customer_repository import CustomerRepository
@@ -244,5 +248,100 @@ def test_inventory_service_rejects_insufficient_stock(tmp_path):
         assert result is not None
         assert result.quantity == 10
         assert stock_movement_repository.get_movements(product.id) == []
+    finally:
+        connection.close()
+
+
+def test_product_customer_sale_inventory_workflow_integrates_through_application_services(
+    tmp_path,
+):
+    connection = create_database(tmp_path)
+
+    try:
+        product_repository = ProductRepository(connection)
+        customer_repository = CustomerRepository(connection)
+        sale_repository = SaleRepository(connection)
+        stock_movement_repository = StockMovementRepository(connection)
+
+        product_service = ProductService(product_repository)
+        customer_service = CustomerService(customer_repository)
+
+        inventory_service = InventoryService(
+            product_repository,
+            stock_movement_repository,
+        )
+
+        sale_service = SaleService(
+            sale_repository,
+            inventory_service,
+        )
+
+        product = Product(
+            id=None,
+            name="Sales Integration Product",
+            description="Product used in sales integration test",
+            sku="SALES-INTEGRATION-001",
+            price=100.0,
+            quantity=0,
+            created_at="2026-09-28T10:00:00",
+        )
+
+        customer = Customer(
+            id=None,
+            name="Sales Integration Customer",
+            phone="9876543210",
+            email="sales.integration@example.com",
+            address="Delhi",
+            created_at="2026-09-28T10:00:00",
+        )
+
+        product_service.add_product(product)
+        customer_service.add_customer(customer)
+
+        inventory_service.stock_in(
+            product.id,
+            10,
+            created_at="2026-09-28T11:00:00",
+        )
+
+        sale = Sale(
+            id=None,
+            customer_id=customer.id,
+            sale_date="2026-09-28",
+            total_amount=0.0,
+            created_at="2026-09-28T12:00:00",
+            lines=[
+                SaleLine(
+                    product_id=product.id,
+                    quantity=2,
+                    unit_price=100.0,
+                ),
+            ],
+        )
+
+        sale_service.create_sale(sale)
+
+        assert sale.customer_id == customer.id
+        assert sale.total_amount == 200.0
+
+        persisted_sale = sale_repository.get_by_id(sale.id)
+
+        assert persisted_sale is not None
+        assert persisted_sale.customer_id == customer.id
+        assert persisted_sale.total_amount == 200.0
+
+        persisted_product = product_repository.get_by_id(product.id)
+
+        assert persisted_product is not None
+        assert persisted_product.quantity == 8
+
+        movements = stock_movement_repository.get_movements(product.id)
+
+        assert len(movements) == 2
+        assert movements[0].movement_type == StockMovementType.ADD
+        assert movements[0].resulting_stock == 10
+        assert movements[1].movement_type == StockMovementType.DEDUCT
+        assert movements[1].resulting_stock == 8
+
     finally:
         connection.close()
