@@ -342,6 +342,13 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.8.0 — Report CLI and Regression
+
+- Added Reports CLI for business, sales, inventory, customer, and supplier reports.
+- Added reporting menu integration to the main CLI.
+- Added dedicated Reports CLI tests.
+- Full regression suite passes with 384 tests.
+
 ### v0.7.4 — Customer/Supplier Reports
 
 - Added customer master-data summaries.
