@@ -10,6 +10,8 @@ from presentation.cli.suppliers import handle_suppliers
 
 from presentation.cli.invoices import handle_invoices
 
+from presentation.cli.reports import handle_reports
+
 def display_menu() -> None:
     print("========================================")
     print("   Python Business Management System")
@@ -21,6 +23,7 @@ def display_menu() -> None:
     print("4. Customers")
     print("5. Suppliers")
     print("6. Invoices")
+    print("7. Reports")
     print("0. Exit")
     print()
 
@@ -52,6 +55,10 @@ def handle_choice(choice: str) -> bool:
 
     if choice == "6":
         handle_invoices()
+        return True
+
+    if choice == "7":
+        handle_reports()
         return True
 
     print("Invalid choice. Please select a valid option.")
