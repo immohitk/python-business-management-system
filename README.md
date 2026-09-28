@@ -342,6 +342,13 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.7.2 — Sales Reports
+
+- Added sales total reporting.
+- Added sales summaries grouped by date.
+- Added sales and item summaries grouped by product.
+- Added controlled-data unit tests and real database integration coverage.
+
 ### v0.7.1 — Reporting Query Foundation
 
 - Added a dedicated reporting repository for read-only business summary queries.
