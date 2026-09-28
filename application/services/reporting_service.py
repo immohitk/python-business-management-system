@@ -30,3 +30,9 @@ class ReportingService:
         threshold: int,
     ) -> list[dict[str, object]]:
         return self.repository.get_low_stock_products(threshold)
+
+    def get_customers_summary(self) -> list[dict[str, object]]:
+        return self.repository.get_customers_summary()
+
+    def get_suppliers_summary(self) -> list[dict[str, object]]:
+        return self.repository.get_suppliers_summary()

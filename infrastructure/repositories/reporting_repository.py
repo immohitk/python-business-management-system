@@ -36,6 +36,52 @@ class ReportingRepository:
             "invoice_count": invoice_count,
         }
 
+    def get_customers_summary(self) -> list[dict[str, object]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                phone,
+                email
+            FROM customers
+            ORDER BY id
+            """
+        ).fetchall()
+
+        return [
+            {
+                "customer_id": row[0],
+                "customer_name": row[1],
+                "phone": row[2],
+                "email": row[3],
+            }
+            for row in rows
+        ]
+
+    def get_suppliers_summary(self) -> list[dict[str, object]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                phone,
+                email
+            FROM suppliers
+            ORDER BY id
+            """
+        ).fetchall()
+
+        return [
+            {
+                "supplier_id": row[0],
+                "supplier_name": row[1],
+                "phone": row[2],
+                "email": row[3],
+            }
+            for row in rows
+        ]
+
     def get_sales_total(self) -> float:
         row = self.connection.execute(
             """

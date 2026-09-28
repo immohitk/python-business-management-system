@@ -163,3 +163,41 @@ def test_get_low_stock_products_delegates_threshold_to_repository():
         }
     ]
     repository.get_low_stock_products.assert_called_once_with(5)
+
+
+def test_get_customers_summary_delegates_to_repository():
+    repository = Mock()
+    repository.get_customers_summary.return_value = [
+        {
+            "customer_id": 1,
+            "customer_name": "Customer A",
+            "phone": "1111111111",
+            "email": "a@example.com",
+        }
+    ]
+
+    service = ReportingService(repository)
+
+    result = service.get_customers_summary()
+
+    assert result == repository.get_customers_summary.return_value
+    repository.get_customers_summary.assert_called_once_with()
+
+
+def test_get_suppliers_summary_delegates_to_repository():
+    repository = Mock()
+    repository.get_suppliers_summary.return_value = [
+        {
+            "supplier_id": 1,
+            "supplier_name": "Supplier A",
+            "phone": "3333333333",
+            "email": "supplier-a@example.com",
+        }
+    ]
+
+    service = ReportingService(repository)
+
+    result = service.get_suppliers_summary()
+
+    assert result == repository.get_suppliers_summary.return_value
+    repository.get_suppliers_summary.assert_called_once_with()
