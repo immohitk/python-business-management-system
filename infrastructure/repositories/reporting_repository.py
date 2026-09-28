@@ -35,3 +35,61 @@ class ReportingRepository:
             "sale_count": sale_count,
             "invoice_count": invoice_count,
         }
+
+    def get_sales_total(self) -> float:
+        row = self.connection.execute(
+            """
+            SELECT COALESCE(SUM(total_amount), 0)
+            FROM sales
+            """
+        ).fetchone()
+
+        return float(row[0])
+
+    def get_sales_by_date(self) -> list[dict[str, object]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                sale_date,
+                COUNT(*) AS sale_count,
+                COALESCE(SUM(total_amount), 0) AS total_amount
+            FROM sales
+            GROUP BY sale_date
+            ORDER BY sale_date
+            """
+        ).fetchall()
+
+        return [
+            {
+                "sale_date": row[0],
+                "sale_count": row[1],
+                "total_amount": float(row[2]),
+            }
+            for row in rows
+        ]
+
+    def get_sales_by_product(self) -> list[dict[str, object]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                sale_items.product_id,
+                products.name,
+                SUM(sale_items.quantity) AS quantity_sold,
+                SUM(sale_items.quantity * sale_items.unit_price) AS sales_amount
+            FROM sale_items
+            JOIN products
+                ON products.id = sale_items.product_id
+            GROUP BY sale_items.product_id, products.name
+            ORDER BY sale_items.product_id
+            """
+        ).fetchall()
+
+        return [
+            {
+                "product_id": row[0],
+                "product_name": row[1],
+                "quantity_sold": row[2],
+                "sales_amount": float(row[3]),
+            }
+            for row in rows
+        ]

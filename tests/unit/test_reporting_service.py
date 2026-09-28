@@ -25,3 +25,65 @@ def test_get_business_summary_delegates_to_repository():
         "invoice_count": 4,
     }
     repository.get_business_summary.assert_called_once_with()
+
+
+def test_get_sales_total_delegates_to_repository():
+    repository = Mock()
+    repository.get_sales_total.return_value = 1710.0
+
+    service = ReportingService(repository)
+
+    result = service.get_sales_total()
+
+    assert result == 1710.0
+    repository.get_sales_total.assert_called_once_with()
+
+
+def test_get_sales_by_date_delegates_to_repository():
+    repository = Mock()
+    repository.get_sales_by_date.return_value = [
+        {
+            "sale_date": "2026-09-27",
+            "sale_count": 2,
+            "total_amount": 1470.0,
+        }
+    ]
+
+    service = ReportingService(repository)
+
+    result = service.get_sales_by_date()
+
+    assert result == [
+        {
+            "sale_date": "2026-09-27",
+            "sale_count": 2,
+            "total_amount": 1470.0,
+        }
+    ]
+    repository.get_sales_by_date.assert_called_once_with()
+
+
+def test_get_sales_by_product_delegates_to_repository():
+    repository = Mock()
+    repository.get_sales_by_product.return_value = [
+        {
+            "product_id": 1,
+            "product_name": "Paint",
+            "quantity_sold": 3,
+            "sales_amount": 1350.0,
+        }
+    ]
+
+    service = ReportingService(repository)
+
+    result = service.get_sales_by_product()
+
+    assert result == [
+        {
+            "product_id": 1,
+            "product_name": "Paint",
+            "quantity_sold": 3,
+            "sales_amount": 1350.0,
+        }
+    ]
+    repository.get_sales_by_product.assert_called_once_with()
