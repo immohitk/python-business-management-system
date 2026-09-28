@@ -342,6 +342,12 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.7.4 — Customer/Supplier Reports
+
+- Added customer master-data summaries.
+- Added supplier master-data summaries.
+- Added controlled-data unit tests and real database integration coverage.
+
 ### v0.7.3 — Inventory Reports
 
 - Added inventory stock status reporting.
