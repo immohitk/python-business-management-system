@@ -93,3 +93,77 @@ class ReportingRepository:
             }
             for row in rows
         ]
+
+
+    def get_stock_status(self) -> list[dict[str, object]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                sku,
+                quantity
+            FROM products
+            ORDER BY id
+            """
+        ).fetchall()
+
+        return [
+            {
+                "product_id": row[0],
+                "product_name": row[1],
+                "sku": row[2],
+                "quantity": row[3],
+            }
+            for row in rows
+        ]
+
+    def get_stock_movements_summary(self) -> list[dict[str, object]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                movement_type,
+                COUNT(*) AS movement_count,
+                COALESCE(SUM(quantity), 0) AS total_quantity
+            FROM stock_movements
+            GROUP BY movement_type
+            ORDER BY movement_type
+            """
+        ).fetchall()
+
+        return [
+            {
+                "movement_type": row[0],
+                "movement_count": row[1],
+                "total_quantity": row[2],
+            }
+            for row in rows
+        ]
+
+    def get_low_stock_products(
+        self,
+        threshold: int,
+    ) -> list[dict[str, object]]:
+        rows = self.connection.execute(
+            """
+            SELECT
+                id,
+                name,
+                sku,
+                quantity
+            FROM products
+            WHERE quantity <= ?
+            ORDER BY quantity, id
+            """,
+            (threshold,),
+        ).fetchall()
+
+        return [
+            {
+                "product_id": row[0],
+                "product_name": row[1],
+                "sku": row[2],
+                "quantity": row[3],
+            }
+            for row in rows
+        ]

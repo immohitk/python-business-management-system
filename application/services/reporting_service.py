@@ -18,3 +18,15 @@ class ReportingService:
 
     def get_sales_by_product(self) -> list[dict[str, object]]:
         return self.repository.get_sales_by_product()
+
+    def get_stock_status(self) -> list[dict[str, object]]:
+        return self.repository.get_stock_status()
+
+    def get_stock_movements_summary(self) -> list[dict[str, object]]:
+        return self.repository.get_stock_movements_summary()
+
+    def get_low_stock_products(
+        self,
+        threshold: int,
+    ) -> list[dict[str, object]]:
+        return self.repository.get_low_stock_products(threshold)
