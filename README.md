@@ -342,6 +342,12 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.7.1 — Reporting Query Foundation
+
+- Added a dedicated reporting repository for read-only business summary queries.
+- Added a reporting application service boundary between the application and repository layers.
+- Added controlled-data tests for reporting queries and service delegation.
+
 ### v0.7.0 — Invoice CLI and Regression
 
 - Added a dedicated application workflow for creating invoices from existing sales.
