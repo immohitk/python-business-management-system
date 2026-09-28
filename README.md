@@ -342,6 +342,13 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.7.3 — Inventory Reports
+
+- Added inventory stock status reporting.
+- Added stock movement summaries by movement type.
+- Added low-stock product reporting with configurable thresholds.
+- Added controlled-data unit tests and real database integration coverage.
+
 ### v0.7.2 — Sales Reports
 
 - Added sales total reporting.
