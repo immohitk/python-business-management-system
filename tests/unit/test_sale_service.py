@@ -1,3 +1,4 @@
+import pytest
 from pathlib import Path
 
 from application.services.inventory_service import InventoryService
@@ -411,6 +412,63 @@ def test_create_sale_rolls_back_sale_items_and_stock_on_failure(tmp_path):
 
         assert stock_movement_repository.get_movements(1) == []
         assert stock_movement_repository.get_movements(2) == []
+    finally:
+        connection.close()
+
+
+def test_create_sale_rolls_back_on_persistence_failure(
+    tmp_path,
+    monkeypatch,
+):
+    (
+        service,
+        sale_repository,
+        product_repository,
+        stock_movement_repository,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        create_products(product_repository)
+
+        def failing_add_item(entity):
+            raise RuntimeError("persistence failed")
+
+        monkeypatch.setattr(
+            sale_repository,
+            "add_item",
+            failing_add_item,
+        )
+
+        sale = Sale(
+            id=None,
+            customer_id=1,
+            sale_date="2026-09-21",
+            total_amount=0.0,
+            created_at="2026-09-21T20:00:00",
+            lines=[
+                SaleLine(
+                    product_id=1,
+                    quantity=2,
+                    unit_price=100.0,
+                ),
+            ],
+        )
+
+        with pytest.raises(RuntimeError, match="persistence failed"):
+            service.create_sale(sale)
+
+        assert sale.id is not None
+        assert sale_repository.get_by_id(sale.id) is None
+        assert sale_repository.get_items(sale.id) == []
+
+        product = product_repository.get_by_id(1)
+
+        assert product is not None
+        assert product.quantity == 10
+
+        assert stock_movement_repository.get_movements(1) == []
+
     finally:
         connection.close()
 
