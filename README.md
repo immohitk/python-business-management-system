@@ -342,6 +342,13 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.8.1 — Module Integration
+
+- Integrated master data, inventory, sales, invoices, and reporting through application services.
+- Added cross-module integration tests using a real SQLite database.
+- Verified application-service boundaries across the integrated business workflow.
+- Full test verification: 387 tests passing.
+
 ### v0.8.0 — Report CLI and Regression
 
 - Added Reports CLI for business, sales, inventory, customer, and supplier reports.
