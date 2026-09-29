@@ -6,17 +6,23 @@ from application.services.invoice_presentation_service import (
 )
 from application.services.invoice_service import InvoiceService
 from application.services.sale_invoice_service import SaleInvoiceService
+from application.services.inventory_service import InventoryService
+from application.services.sale_service import SaleService
 from domain.entities.customer import Customer
 from domain.entities.invoice import Invoice
 from domain.entities.product import Product
 from domain.entities.sale import Sale
 from domain.entities.sale_item import SaleItem
+from domain.entities.sale_line import SaleLine
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.customer_repository import CustomerRepository
 from infrastructure.repositories.invoice_repository import InvoiceRepository
 from infrastructure.repositories.product_repository import ProductRepository
 from infrastructure.repositories.sale_repository import SaleRepository
+from infrastructure.repositories.stock_movement_repository import (
+    StockMovementRepository,
+)
 
 
 def create_test_environment(
@@ -252,5 +258,115 @@ def test_sale_to_invoice_workflow_integrates_with_database(
         assert "LAP-001" in output
         assert "50000.00" in output
         assert "100000.00" in output
+    finally:
+        connection.close()
+
+
+def test_sale_service_to_invoice_service_workflow_integrates_with_database(
+    tmp_path: Path,
+):
+    (
+        presentation_service,
+        formatter,
+        invoice_repository,
+        sale_repository,
+        customer_repository,
+        product_repository,
+        connection,
+    ) = create_test_environment(tmp_path)
+
+    try:
+        customer = Customer(
+            id=None,
+            name="Application Service Customer",
+            phone="9876543210",
+            email="application@example.com",
+            address="Bengaluru",
+            created_at="2026-09-28T10:00:00",
+        )
+        customer_repository.add(customer)
+
+        product = Product(
+            id=None,
+            name="Application Service Product",
+            description="Product for service integration",
+            sku="SERVICE-INVOICE-001",
+            price=1000.0,
+            quantity=10,
+            created_at="2026-09-28T10:00:00",
+        )
+        product_repository.add(product)
+
+        stock_movement_repository = StockMovementRepository(connection)
+
+        inventory_service = InventoryService(
+            product_repository,
+            stock_movement_repository,
+        )
+
+        sale_service = SaleService(
+            sale_repository=sale_repository,
+            inventory_service=inventory_service,
+        )
+
+        sale = Sale(
+            id=None,
+            customer_id=customer.id,
+            sale_date="2026-09-28",
+            total_amount=0.0,
+            created_at="2026-09-28T11:00:00",
+            lines=[
+                SaleLine(
+                    product_id=product.id,
+                    quantity=2,
+                    unit_price=1000.0,
+                ),
+            ],
+        )
+
+        sale_service.create_sale(sale)
+
+        assert sale.id is not None
+        assert sale.total_amount == 2000.0
+
+        persisted_product = product_repository.get_by_id(product.id)
+
+        assert persisted_product is not None
+        assert persisted_product.quantity == 8
+
+        invoice_service = InvoiceService(invoice_repository)
+
+        sale_invoice_service = SaleInvoiceService(
+            sale_repository=sale_repository,
+            invoice_service=invoice_service,
+        )
+
+        invoice = sale_invoice_service.create_invoice_for_sale(sale.id)
+
+        assert invoice.id is not None
+        assert invoice.sale_id == sale.id
+        assert invoice.invoice_number == "INV-000001"
+        assert invoice.invoice_date == "2026-09-28"
+        assert invoice.total_amount == 2000.0
+
+        stored_invoice = invoice_repository.get_by_id(invoice.id)
+
+        assert stored_invoice is not None
+        assert stored_invoice.sale_id == sale.id
+        assert stored_invoice.invoice_number == "INV-000001"
+        assert stored_invoice.total_amount == 2000.0
+
+        presentation = presentation_service.get_invoice_presentation(
+            invoice.id
+        )
+        output = formatter.format(presentation)
+
+        assert "TAX INVOICE" in output
+        assert "INV-000001" in output
+        assert "Application Service Customer" in output
+        assert "Application Service Product" in output
+        assert "SERVICE-INVOICE-001" in output
+        assert "2000.00" in output
+
     finally:
         connection.close()
