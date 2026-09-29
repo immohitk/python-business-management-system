@@ -342,6 +342,12 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.8.2 — End-to-End Business Flow
+
+- Added an automated end-to-end business workflow from product and customer creation through stock, sale, stock deduction, invoice, and reporting.
+- Verified the complete workflow using real application services and a real SQLite database.
+- Full test verification: 388 tests passing.
+
 ### v0.8.1 — Module Integration
 
 - Integrated master data, inventory, sales, invoices, and reporting through application services.
