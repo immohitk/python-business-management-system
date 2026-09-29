@@ -6,6 +6,9 @@ from application.services.product_service import ProductService
 from application.services.supplier_service import SupplierService
 from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
+from application.services.invoice_service import InvoiceService
+from application.services.sale_invoice_service import SaleInvoiceService
+from application.services.reporting_service import ReportingService
 from domain.entities.customer import Customer
 from domain.entities.product import Product
 from domain.entities.supplier import Supplier
@@ -21,6 +24,8 @@ from infrastructure.repositories.supplier_repository import SupplierRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
+from infrastructure.repositories.invoice_repository import InvoiceRepository
+from infrastructure.repositories.reporting_repository import ReportingRepository
 
 
 def create_database(tmp_path: Path):
@@ -342,6 +347,132 @@ def test_product_customer_sale_inventory_workflow_integrates_through_application
         assert movements[0].resulting_stock == 10
         assert movements[1].movement_type == StockMovementType.DEDUCT
         assert movements[1].resulting_stock == 8
+
+    finally:
+        connection.close()
+
+
+def test_complete_business_workflow_integrates_all_application_services(
+    tmp_path,
+):
+    database_path = tmp_path / "end_to_end.db"
+    initialize_database(database_path)
+    connection = get_connection(database_path)
+
+    try:
+        product_repository = ProductRepository(connection)
+        customer_repository = CustomerRepository(connection)
+        sale_repository = SaleRepository(connection)
+        stock_movement_repository = StockMovementRepository(connection)
+        invoice_repository = InvoiceRepository(connection)
+        reporting_repository = ReportingRepository(connection)
+
+        product_service = ProductService(product_repository)
+        customer_service = CustomerService(customer_repository)
+
+        inventory_service = InventoryService(
+            product_repository,
+            stock_movement_repository,
+        )
+
+        sale_service = SaleService(
+            sale_repository,
+            inventory_service,
+        )
+
+        invoice_service = InvoiceService(invoice_repository)
+
+        sale_invoice_service = SaleInvoiceService(
+            sale_repository=sale_repository,
+            invoice_service=invoice_service,
+        )
+
+        reporting_service = ReportingService(reporting_repository)
+
+        product = Product(
+            id=None,
+            name="End-to-End Product",
+            description="Complete business workflow product",
+            sku="E2E-001",
+            price=500.0,
+            quantity=0,
+            created_at="2026-09-29T10:00:00",
+        )
+
+        customer = Customer(
+            id=None,
+            name="End-to-End Customer",
+            phone="9999999999",
+            email="e2e@example.com",
+            address="Bengaluru",
+            created_at="2026-09-29T10:05:00",
+        )
+
+        product_service.add_product(product)
+        customer_service.add_customer(customer)
+
+        inventory_service.stock_in(
+            product.id,
+            10,
+            created_at="2026-09-29T10:10:00",
+        )
+
+        sale = Sale(
+            id=None,
+            customer_id=customer.id,
+            sale_date="2026-09-29",
+            total_amount=0.0,
+            created_at="2026-09-29T10:20:00",
+            lines=[
+                SaleLine(
+                    product_id=product.id,
+                    quantity=2,
+                    unit_price=500.0,
+                ),
+            ],
+        )
+
+        sale_service.create_sale(sale)
+
+        assert sale.id is not None
+        assert sale.total_amount == 1000.0
+
+        persisted_product = product_repository.get_by_id(product.id)
+
+        assert persisted_product is not None
+        assert persisted_product.quantity == 8
+
+        invoice = sale_invoice_service.create_invoice_for_sale(sale.id)
+
+        assert invoice.id is not None
+        assert invoice.sale_id == sale.id
+        assert invoice.invoice_number == "INV-000001"
+        assert invoice.total_amount == 1000.0
+
+        stored_invoice = invoice_repository.get_by_id(invoice.id)
+
+        assert stored_invoice is not None
+        assert stored_invoice.sale_id == sale.id
+        assert stored_invoice.total_amount == 1000.0
+
+        assert reporting_service.get_sales_total() == 1000.0
+
+        assert reporting_service.get_sales_by_date() == [
+            {
+                "sale_date": "2026-09-29",
+                "sale_count": 1,
+                "total_amount": 1000.0,
+            }
+        ]
+
+        assert reporting_service.get_sales_by_product() == [
+            {
+                "product_id": product.id,
+                "product_name": "End-to-End Product",
+                "quantity_sold": 2,
+                "sales_amount": 1000.0,
+            }
+        ]
 
     finally:
         connection.close()
