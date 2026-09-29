@@ -342,6 +342,13 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.8.3 — Error Handling and Transaction Hardening
+
+- Hardened business operations against persistence failures.
+- Verified rollback behavior for sale persistence failures, insufficient stock, and related transactional errors.
+- Verified invalid inputs and missing-record handling.
+- Full test verification: 389 tests passing.
+
 ### v0.8.2 — End-to-End Business Flow
 
 - Added an automated end-to-end business workflow from product and customer creation through stock, sale, stock deduction, invoice, and reporting.
