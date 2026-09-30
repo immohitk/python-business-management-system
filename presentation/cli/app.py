@@ -1,16 +1,12 @@
+from presentation.cli.context import CLIContext
 from presentation.cli.products import handle_products
-
 from presentation.cli.inventory import handle_inventory
-
 from presentation.cli.sales import handle_sales
-
 from presentation.cli.customers import handle_customers
-
 from presentation.cli.suppliers import handle_suppliers
-
 from presentation.cli.invoices import handle_invoices
-
 from presentation.cli.reports import handle_reports
+
 
 def display_menu() -> None:
     print("========================================")
@@ -28,47 +24,64 @@ def display_menu() -> None:
     print()
 
 
-def handle_choice(choice: str) -> bool:
-    if choice == "0":
-        print("Exiting application...")
-        return False
+def handle_choice(choice: str, context: CLIContext | None = None) -> bool:
+    owns_context = context is None
 
-    if choice == "1":
-        handle_products()
+    if context is None:
+        context = CLIContext()
+
+    try:
+        if choice == "0":
+            print("Exiting application...")
+            return False
+
+        if choice == "1":
+            handle_products(context.product_service)
+            return True
+
+        if choice == "2":
+            handle_inventory(context.inventory_service)
+            return True
+
+        if choice == "3":
+            handle_sales(context.sale_service)
+            return True
+
+        if choice == "4":
+            handle_customers(context.customer_service)
+            return True
+
+        if choice == "5":
+            handle_suppliers(context.supplier_service)
+            return True
+
+        if choice == "6":
+            handle_invoices(
+                context.invoice_presentation_service,
+                context.sale_invoice_service,
+            )
+            return True
+
+        if choice == "7":
+            handle_reports(context.reporting_service)
+            return True
+
+        print("Invalid choice. Please select a valid option.")
         return True
-
-    if choice == "2":
-        handle_inventory()
-        return True
-
-    if choice == "3":
-        handle_sales()
-        return True
-
-    if choice == "4":
-        handle_customers()
-        return True
-
-    if choice == "5":
-        handle_suppliers()
-        return True
-
-    if choice == "6":
-        handle_invoices()
-        return True
-
-    if choice == "7":
-        handle_reports()
-        return True
-
-    print("Invalid choice. Please select a valid option.")
-    return True
+    finally:
+        if owns_context:
+            context.close()
 
 
 def run() -> None:
-    while True:
-        display_menu()
-        choice = input("Enter your choice: ")
+    context = CLIContext()
 
-        if not handle_choice(choice):
-            break
+    try:
+        while True:
+            display_menu()
+            choice = input("Enter your choice: ")
+
+            if not handle_choice(choice, context):
+                break
+    finally:
+        context.close()
