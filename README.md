@@ -253,7 +253,7 @@ python -m presentation.cli
 pytest
 ```
 
-The current test suite covers database configuration, database initialization, schema behavior, repository persistence, CLI behavior, inventory rules, stock movement persistence, timestamped movement history, and integration scenarios.
+The current tests cover database configuration, database initialization, schema behavior, repository persistence, CLI behavior, inventory rules, stock movement persistence, timestamped movement history, and integration scenarios.
 
 ---
 
@@ -266,6 +266,8 @@ The current CLI provides navigation for:
 - Sales
 - Customers
 - Suppliers
+- Invoices
+- Reports
 
 ### Currently Available
 
@@ -289,6 +291,19 @@ The current CLI provides navigation for:
 - List suppliers
 - Get supplier
 - Delete supplier
+
+#### Invoices
+
+- Create invoice from sale
+- Show invoice
+
+#### Reports
+
+- Business summary
+- Sales reports
+- Inventory reports
+- Customer reports
+- Supplier reports
 
 ### Inventory
 
@@ -341,6 +356,14 @@ Core sales creation and inventory deduction workflows are now integrated through
 Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
 
 ---
+
+### v0.9.0 — Integrated CLI
+
+- Connected CLI modules through a shared application context and shared database connection.
+- Integrated the CLI business flow from product and customer creation through sales, inventory deduction, and invoicing.
+- Integrated CLI reporting with connected application data.
+- Added top-level CLI application integration coverage.
+- Full test verification: 394 tests passing.
 
 ### v0.8.4 — Integration Tests
 
