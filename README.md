@@ -342,6 +342,12 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v0.8.4 — Integration Tests
+
+- Expanded cross-module integration coverage using real application services and a real SQLite database.
+- Added integration coverage for CustomerService and SupplierService flowing into ReportingService.
+- Full test verification: 390 tests passing.
+
 ### v0.8.3 — Error Handling and Transaction Hardening
 
 - Hardened business operations against persistence failures.
