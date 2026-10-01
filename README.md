@@ -27,7 +27,7 @@ The goal is to build something that is not only technically sound, but also usef
 
 ## ✨ What It Offers
 
-The system is currently being developed around the following business-management areas:
+The system provides the following business-management capabilities:
 
 - 📦 Product management
 - 📊 Inventory management
@@ -38,13 +38,13 @@ The system is currently being developed around the following business-management
 
 The current implementation also includes a SQLite-based persistence layer with database initialization, schema management, repository-based persistence, application services for master data and inventory operations, product-linked stock movement history, timestamped inventory movement records, and automated unit and integration testing.
 
-Functionality is being introduced progressively as the application develops.
-
 ---
 
 ## 🖥️ Preview
 
-The application interface and major workflows will be showcased here as the project becomes functionally usable.
+The application is currently operated through an interactive CLI covering the implemented business workflows.
+
+The main CLI provides access to products, inventory, sales, customers, suppliers, invoices, and reports.
 
 ### Application Preview
 
