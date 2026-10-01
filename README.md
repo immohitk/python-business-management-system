@@ -366,6 +366,18 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v1.2.0 — Dashboard and Navigation
+
+- Connected the GUI to the existing application context.
+- Added a functional dashboard using the existing reporting services.
+- Added KPI cards for products, customers, suppliers, sales, invoices, and total sales.
+- Verified dashboard data loading through the application service layer.
+- Verified GUI navigation across the main business areas.
+- Preserved the layered architecture with no direct SQL in the GUI.
+- Final regression verification: 394 tests passing.
+
+**Release result:** An understandable main GUI with a functional business dashboard and connected navigation.
+
 ### v1.1.0 — Working GUI Foundation
 
 - Added a real Tkinter desktop GUI.
