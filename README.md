@@ -366,6 +366,17 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v1.1.0 — Working GUI Foundation
+
+- Added a real Tkinter desktop GUI.
+- Added a structured GUI presentation layer separate from business logic.
+- Added the main navigation shell for products, inventory, sales, customers, suppliers, invoices, and reports.
+- Verified GUI launch and navigation smoke checks.
+- Preserved the existing layered application architecture.
+- Final regression verification: 394 tests passing.
+
+**Release result:** A working desktop GUI foundation with navigation across the public business workflows.
+
 ### v1.0.0 — Public Functional MVP
 
 - Completed the public functional MVP across products, inventory, sales, customers, suppliers, invoicing, and reporting.
