@@ -366,6 +366,16 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v1.0.0 — Public Functional MVP
+
+- Completed the public functional MVP across products, inventory, sales, customers, suppliers, invoicing, and reporting.
+- Verified integrated business workflows through the CLI and application services.
+- Completed hardening review across core business and reporting services.
+- Verified clean-environment clone, installation, testing, and CLI execution.
+- Final regression verification: 394 tests passing.
+
+**Release result:** A complete, reproducible public functional showcase.
+
 ### v0.9.0 — Integrated CLI
 
 - Connected CLI modules through a shared application context and shared database connection.
