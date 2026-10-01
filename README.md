@@ -2,7 +2,7 @@
 
 > A Python-based business management system for managing everyday business operations through a structured and maintainable application.
 
-**🚧 Status:** In Development
+**🚧 Status:** Functional MVP
 
 ---
 
@@ -208,6 +208,15 @@ docs/database.md
 ---
 
 ## 🚀 Getting Started
+
+### Fresh Environment Verification
+
+The project has been verified from a clean Git clone using a fresh Python virtual environment.
+
+- Editable installation completed successfully
+- Full test suite verified with 394 passing tests
+- CLI launched successfully from the fresh environment
+- Main application menu and clean exit verified
 
 ### Requirements
 
