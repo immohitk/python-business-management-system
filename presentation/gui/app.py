@@ -46,6 +46,10 @@ class GUIApplication:
         for widget in self.content.winfo_children():
             widget.destroy()
 
+        if name == "Dashboard":
+            self._show_dashboard()
+            return
+
         title = ttk.Label(
             self.content,
             text=name,
@@ -58,6 +62,40 @@ class GUIApplication:
             text=f"{name} screen",
         )
         description.pack(anchor="w")
+
+    def _show_dashboard(self) -> None:
+        title = ttk.Label(
+            self.content,
+            text="Dashboard",
+            font=("TkDefaultFont", 20, "bold"),
+        )
+        title.pack(anchor="w", pady=(0, 20))
+
+        summary = self.context.reporting_service.get_business_summary()
+        sales_total = self.context.reporting_service.get_sales_total()
+
+        cards = ttk.Frame(self.content)
+        cards.pack(fill="x")
+
+        metrics = [
+            ("Products", summary["product_count"]),
+            ("Customers", summary["customer_count"]),
+            ("Suppliers", summary["supplier_count"]),
+            ("Sales", summary["sale_count"]),
+            ("Invoices", summary["invoice_count"]),
+            ("Total Sales", f"{sales_total:.2f}"),
+        ]
+
+        for label, value in metrics:
+            card = ttk.LabelFrame(cards, text=label, padding=15)
+            card.pack(side="left", fill="both", expand=True, padx=5)
+
+            value_label = ttk.Label(
+                card,
+                text=str(value),
+                font=("TkDefaultFont", 16, "bold"),
+            )
+            value_label.pack()
 
 
 def main() -> None:
