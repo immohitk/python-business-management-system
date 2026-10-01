@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 
+from presentation.cli.context import CLIContext
+
 
 class GUIApplication:
-    def __init__(self, root: tk.Tk) -> None:
+    def __init__(self, root: tk.Tk, context: CLIContext) -> None:
         self.root = root
+        self.context = context
         self.root.title("Python Business Management System")
         self.root.geometry("1000x650")
         self.root.minsize(800, 500)
@@ -58,9 +61,14 @@ class GUIApplication:
 
 
 def main() -> None:
+    context = CLIContext()
     root = tk.Tk()
-    GUIApplication(root)
-    root.mainloop()
+
+    try:
+        GUIApplication(root, context)
+        root.mainloop()
+    finally:
+        context.close()
 
 
 if __name__ == "__main__":
