@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
+from datetime import datetime
 
+from domain.entities.customer import Customer
 from domain.entities.product import Product
 from presentation.cli.context import CLIContext
 
@@ -53,6 +55,10 @@ class GUIApplication:
 
         if name == "Products":
             self._show_products()
+            return
+
+        if name == "Customers":
+            self._show_customers()
             return
 
         title = ttk.Label(
@@ -241,30 +247,12 @@ class GUIApplication:
             height=12,
         )
 
-        product_list.heading(
-            "id",
-            text="ID",
-        )
-        product_list.heading(
-            "name",
-            text="Name",
-        )
-        product_list.heading(
-            "description",
-            text="Description",
-        )
-        product_list.heading(
-            "sku",
-            text="SKU",
-        )
-        product_list.heading(
-            "price",
-            text="Price",
-        )
-        product_list.heading(
-            "quantity",
-            text="Quantity",
-        )
+        product_list.heading("id", text="ID")
+        product_list.heading("name", text="Name")
+        product_list.heading("description", text="Description")
+        product_list.heading("sku", text="SKU")
+        product_list.heading("price", text="Price")
+        product_list.heading("quantity", text="Quantity")
 
         product_list.column(
             "id",
@@ -340,7 +328,7 @@ class GUIApplication:
                     sku=sku_entry.get(),
                     price=float(price_entry.get()),
                     quantity=int(quantity_entry.get()),
-                    created_at=__import__("datetime").datetime.now().isoformat(
+                    created_at=datetime.now().isoformat(
                         timespec="seconds"
                     ),
                 )
@@ -403,6 +391,256 @@ class GUIApplication:
         )
 
         load_products()
+
+    def _show_customers(self) -> None:
+        title = ttk.Label(
+            self.content,
+            text="Customers",
+            font=("TkDefaultFont", 20, "bold"),
+        )
+        title.pack(anchor="w", pady=(0, 15))
+
+        form = ttk.LabelFrame(
+            self.content,
+            text="Add Customer",
+            padding=10,
+        )
+        form.pack(fill="x", pady=(0, 15))
+
+        ttk.Label(
+            form,
+            text="Name",
+        ).grid(
+            row=0,
+            column=0,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        name_entry = ttk.Entry(form, width=25)
+        name_entry.grid(
+            row=0,
+            column=1,
+            padx=5,
+            pady=5,
+        )
+
+        ttk.Label(
+            form,
+            text="Phone",
+        ).grid(
+            row=0,
+            column=2,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        phone_entry = ttk.Entry(form, width=25)
+        phone_entry.grid(
+            row=0,
+            column=3,
+            padx=5,
+            pady=5,
+        )
+
+        ttk.Label(
+            form,
+            text="Email",
+        ).grid(
+            row=1,
+            column=0,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        email_entry = ttk.Entry(form, width=25)
+        email_entry.grid(
+            row=1,
+            column=1,
+            padx=5,
+            pady=5,
+        )
+
+        ttk.Label(
+            form,
+            text="Address",
+        ).grid(
+            row=1,
+            column=2,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        address_entry = ttk.Entry(form, width=25)
+        address_entry.grid(
+            row=1,
+            column=3,
+            padx=5,
+            pady=5,
+        )
+
+        button_frame = ttk.Frame(form)
+        button_frame.grid(
+            row=2,
+            column=2,
+            columnspan=2,
+            padx=5,
+            pady=5,
+            sticky="e",
+        )
+
+        customer_list = ttk.Treeview(
+            self.content,
+            columns=(
+                "id",
+                "name",
+                "phone",
+                "email",
+                "address",
+            ),
+            show="headings",
+            height=12,
+        )
+
+        customer_list.heading("id", text="ID")
+        customer_list.heading("name", text="Name")
+        customer_list.heading("phone", text="Phone")
+        customer_list.heading("email", text="Email")
+        customer_list.heading("address", text="Address")
+
+        customer_list.column(
+            "id",
+            width=60,
+            anchor="center",
+            stretch=False,
+        )
+        customer_list.column(
+            "name",
+            width=180,
+            anchor="w",
+        )
+        customer_list.column(
+            "phone",
+            width=140,
+            anchor="w",
+        )
+        customer_list.column(
+            "email",
+            width=220,
+            anchor="w",
+        )
+        customer_list.column(
+            "address",
+            width=260,
+            anchor="w",
+        )
+
+        customer_list.pack(
+            fill="both",
+            expand=True,
+            pady=(5, 0),
+        )
+
+        def load_customers() -> None:
+            for item in customer_list.get_children():
+                customer_list.delete(item)
+
+            customers = self.context.customer_service.get_customers()
+
+            for customer in customers:
+                customer_list.insert(
+                    "",
+                    "end",
+                    values=(
+                        customer.id,
+                        customer.name,
+                        customer.phone or "",
+                        customer.email or "",
+                        customer.address or "",
+                    ),
+                )
+
+        def clear_form() -> None:
+            name_entry.delete(0, tk.END)
+            phone_entry.delete(0, tk.END)
+            email_entry.delete(0, tk.END)
+            address_entry.delete(0, tk.END)
+
+        def add_customer() -> None:
+            try:
+                customer = Customer(
+                    id=None,
+                    name=name_entry.get(),
+                    phone=phone_entry.get() or None,
+                    email=email_entry.get() or None,
+                    address=address_entry.get() or None,
+                    created_at=datetime.now().isoformat(
+                        timespec="seconds"
+                    ),
+                )
+
+                self.context.customer_service.add_customer(customer)
+                clear_form()
+                load_customers()
+
+                messagebox.showinfo(
+                    "Success",
+                    "Customer added successfully.",
+                )
+
+            except (ValueError, TypeError) as exc:
+                messagebox.showerror(
+                    "Invalid Input",
+                    str(exc),
+                )
+
+        def delete_customer() -> None:
+            selected = customer_list.selection()
+
+            if not selected:
+                messagebox.showwarning(
+                    "Delete Customer",
+                    "Select a customer first.",
+                )
+                return
+
+            values = customer_list.item(
+                selected[0],
+                "values",
+            )
+            customer_id = int(values[0])
+
+            self.context.customer_service.delete_customer(customer_id)
+            load_customers()
+
+            messagebox.showinfo(
+                "Success",
+                "Customer deleted successfully.",
+            )
+
+        ttk.Button(
+            button_frame,
+            text="Add Customer",
+            command=add_customer,
+        ).pack(
+            side="left",
+            padx=5,
+        )
+
+        ttk.Button(
+            button_frame,
+            text="Delete Selected",
+            command=delete_customer,
+        ).pack(
+            side="left",
+            padx=5,
+        )
+
+        load_customers()
 
 
 def main() -> None:
