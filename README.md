@@ -366,6 +366,18 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 ---
 
+### v1.3.0 — Master-Data Screens
+
+- Added a functional Product management GUI with create, list, and delete operations.
+- Added a functional Customer management GUI with create, list, and delete operations.
+- Added a functional Supplier management GUI with create, list, and delete operations.
+- Connected all master-data screens to the existing application services.
+- Verified Product, Customer, and Supplier CRUD workflows through GUI smoke checks.
+- Preserved the layered architecture with no direct SQL in the GUI.
+- Final regression verification: 394 tests passing.
+
+**Release result:** A functional GUI for managing the core product, customer, and supplier master data.
+
 ### v1.2.0 — Dashboard and Navigation
 
 - Connected the GUI to the existing application context.
