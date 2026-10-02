@@ -4,6 +4,7 @@ from datetime import datetime
 
 from domain.entities.customer import Customer
 from domain.entities.product import Product
+from domain.entities.supplier import Supplier
 from presentation.cli.context import CLIContext
 
 
@@ -59,6 +60,10 @@ class GUIApplication:
 
         if name == "Customers":
             self._show_customers()
+            return
+
+        if name == "Suppliers":
+            self._show_suppliers()
             return
 
         title = ttk.Label(
@@ -260,26 +265,31 @@ class GUIApplication:
             anchor="center",
             stretch=False,
         )
+
         product_list.column(
             "name",
             width=180,
             anchor="w",
         )
+
         product_list.column(
             "description",
             width=260,
             anchor="w",
         )
+
         product_list.column(
             "sku",
             width=130,
             anchor="w",
         )
+
         product_list.column(
             "price",
             width=120,
             anchor="w",
         )
+
         product_list.column(
             "quantity",
             width=100,
@@ -362,6 +372,7 @@ class GUIApplication:
                 selected[0],
                 "values",
             )
+
             product_id = int(values[0])
 
             self.context.product_service.delete_product(product_id)
@@ -518,21 +529,25 @@ class GUIApplication:
             anchor="center",
             stretch=False,
         )
+
         customer_list.column(
             "name",
             width=180,
             anchor="w",
         )
+
         customer_list.column(
             "phone",
             width=140,
             anchor="w",
         )
+
         customer_list.column(
             "email",
             width=220,
             anchor="w",
         )
+
         customer_list.column(
             "address",
             width=260,
@@ -612,6 +627,7 @@ class GUIApplication:
                 selected[0],
                 "values",
             )
+
             customer_id = int(values[0])
 
             self.context.customer_service.delete_customer(customer_id)
@@ -641,6 +657,261 @@ class GUIApplication:
         )
 
         load_customers()
+
+    def _show_suppliers(self) -> None:
+        title = ttk.Label(
+            self.content,
+            text="Suppliers",
+            font=("TkDefaultFont", 20, "bold"),
+        )
+        title.pack(anchor="w", pady=(0, 15))
+
+        form = ttk.LabelFrame(
+            self.content,
+            text="Add Supplier",
+            padding=10,
+        )
+        form.pack(fill="x", pady=(0, 15))
+
+        ttk.Label(
+            form,
+            text="Name",
+        ).grid(
+            row=0,
+            column=0,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        name_entry = ttk.Entry(form, width=25)
+        name_entry.grid(
+            row=0,
+            column=1,
+            padx=5,
+            pady=5,
+        )
+
+        ttk.Label(
+            form,
+            text="Phone",
+        ).grid(
+            row=0,
+            column=2,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        phone_entry = ttk.Entry(form, width=25)
+        phone_entry.grid(
+            row=0,
+            column=3,
+            padx=5,
+            pady=5,
+        )
+
+        ttk.Label(
+            form,
+            text="Email",
+        ).grid(
+            row=1,
+            column=0,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        email_entry = ttk.Entry(form, width=25)
+        email_entry.grid(
+            row=1,
+            column=1,
+            padx=5,
+            pady=5,
+        )
+
+        ttk.Label(
+            form,
+            text="Address",
+        ).grid(
+            row=1,
+            column=2,
+            padx=5,
+            pady=5,
+            sticky="w",
+        )
+
+        address_entry = ttk.Entry(form, width=25)
+        address_entry.grid(
+            row=1,
+            column=3,
+            padx=5,
+            pady=5,
+        )
+
+        button_frame = ttk.Frame(form)
+        button_frame.grid(
+            row=2,
+            column=2,
+            columnspan=2,
+            padx=5,
+            pady=5,
+            sticky="e",
+        )
+
+        supplier_list = ttk.Treeview(
+            self.content,
+            columns=(
+                "id",
+                "name",
+                "phone",
+                "email",
+                "address",
+            ),
+            show="headings",
+            height=12,
+        )
+
+        supplier_list.heading("id", text="ID")
+        supplier_list.heading("name", text="Name")
+        supplier_list.heading("phone", text="Phone")
+        supplier_list.heading("email", text="Email")
+        supplier_list.heading("address", text="Address")
+
+        supplier_list.column(
+            "id",
+            width=60,
+            anchor="center",
+            stretch=False,
+        )
+
+        supplier_list.column(
+            "name",
+            width=180,
+            anchor="w",
+        )
+
+        supplier_list.column(
+            "phone",
+            width=140,
+            anchor="w",
+        )
+
+        supplier_list.column(
+            "email",
+            width=220,
+            anchor="w",
+        )
+
+        supplier_list.column(
+            "address",
+            width=260,
+            anchor="w",
+        )
+
+        supplier_list.pack(
+            fill="both",
+            expand=True,
+            pady=(5, 0),
+        )
+
+        def load_suppliers() -> None:
+            for item in supplier_list.get_children():
+                supplier_list.delete(item)
+
+            suppliers = self.context.supplier_service.get_suppliers()
+
+            for supplier in suppliers:
+                supplier_list.insert(
+                    "",
+                    "end",
+                    values=(
+                        supplier.id,
+                        supplier.name,
+                        supplier.phone or "",
+                        supplier.email or "",
+                        supplier.address or "",
+                    ),
+                )
+
+        def clear_form() -> None:
+            name_entry.delete(0, tk.END)
+            phone_entry.delete(0, tk.END)
+            email_entry.delete(0, tk.END)
+            address_entry.delete(0, tk.END)
+
+        def add_supplier() -> None:
+            try:
+                supplier = Supplier(
+                    id=None,
+                    name=name_entry.get(),
+                    phone=phone_entry.get() or None,
+                    email=email_entry.get() or None,
+                    address=address_entry.get() or None,
+                    created_at=datetime.now().isoformat(
+                        timespec="seconds"
+                    ),
+                )
+
+                self.context.supplier_service.add_supplier(supplier)
+                clear_form()
+                load_suppliers()
+
+                messagebox.showinfo(
+                    "Success",
+                    "Supplier added successfully.",
+                )
+
+            except (ValueError, TypeError) as exc:
+                messagebox.showerror(
+                    "Invalid Input",
+                    str(exc),
+                )
+
+        def delete_supplier() -> None:
+            selected = supplier_list.selection()
+
+            if not selected:
+                messagebox.showwarning(
+                    "Delete Supplier",
+                    "Select a supplier first.",
+                )
+                return
+
+            values = supplier_list.item(
+                selected[0],
+                "values",
+            )
+
+            supplier_id = int(values[0])
+
+            self.context.supplier_service.delete_supplier(supplier_id)
+            load_suppliers()
+
+            messagebox.showinfo(
+                "Success",
+                "Supplier deleted successfully.",
+            )
+
+        ttk.Button(
+            button_frame,
+            text="Add Supplier",
+            command=add_supplier,
+        ).pack(
+            side="left",
+            padx=5,
+        )
+
+        ttk.Button(
+            button_frame,
+            text="Delete Selected",
+            command=delete_supplier,
+        ).pack(
+            side="left",
+            padx=5,
+        )
+
+        load_suppliers()
 
 
 def main() -> None:
