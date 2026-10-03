@@ -66,21 +66,19 @@ The main CLI provides access to products, inventory, sales, customers, suppliers
 
 The project follows a layered architecture to keep different responsibilities separated.
 
-```text
-Presentation
-     │
-     ▼
-Application
-     │
-     ▼
-Domain
-     │
-     ▼
-Infrastructure
-     │
-     ▼
-Database
-```
+    Presentation
+         │
+         ▼
+    Application
+         │
+         ▼
+    Domain
+         │
+         ▼
+    Infrastructure
+         │
+         ▼
+    Database
 
 ### Presentation
 
@@ -104,39 +102,36 @@ This separation helps keep the core application logic independent from the inter
 
 ## 📁 Project Structure
 
-```text
-python-business-management-system/
-
-│
-├── application/
-│   ├── services/
-│   └── __init__.py
-│
-├── domain/
-│   ├── entities/
-│   ├── rules/
-│   └── __init__.py
-│
-├── infrastructure/
-│   ├── database/
-│   ├── repositories/
-│   └── __init__.py
-│
-├── presentation/
-│   ├── cli/
-│   └── __init__.py
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── __init__.py
-│
-├── docs/
-│
-├── pyproject.toml
-├── README.md
-└── .gitignore
-```
+    python-business-management-system/
+    │
+    ├── application/
+    │   ├── services/
+    │   └── __init__.py
+    │
+    ├── domain/
+    │   ├── entities/
+    │   ├── rules/
+    │   └── __init__.py
+    │
+    ├── infrastructure/
+    │   ├── database/
+    │   ├── repositories/
+    │   └── __init__.py
+    │
+    ├── presentation/
+    │   ├── cli/
+    │   └── __init__.py
+    │
+    ├── tests/
+    │   ├── unit/
+    │   ├── integration/
+    │   └── __init__.py
+    │
+    ├── docs/
+    │
+    ├── pyproject.toml
+    ├── README.md
+    └── .gitignore
 
 The structure will evolve naturally as new functionality is introduced.
 
@@ -152,7 +147,7 @@ The database foundation includes:
 - SQLite connection management
 - Repeatable database initialization
 - Versioned database schema
-- Eight core database tables
+- Nine core database tables
 - Defined table relationships
 - Repository-based persistence
 - Persistent stock movement history
@@ -163,16 +158,15 @@ The database foundation includes:
 
 The current database tables are:
 
-```text
-schema_version
-products
-customers
-suppliers
-sales
-sale_items
-invoices
-stock_movements
-```
+    schema_version
+    products
+    customers
+    suppliers
+    sales
+    sale_items
+    invoices
+    stock_movements
+    product_history
 
 The `stock_movements` table stores inventory movement history associated with products, including:
 
@@ -188,9 +182,7 @@ Stock movement persistence is handled through the repository layer, keeping data
 
 Detailed database documentation is available in:
 
-```text
-docs/database.md
-```
+    docs/database.md
 
 ---
 
@@ -214,7 +206,7 @@ docs/database.md
 The project has been verified from a clean Git clone using a fresh Python virtual environment.
 
 - Editable installation completed successfully
-- Full test suite verified with 394 passing tests
+- Full test verification completed with 412 passing tests
 - CLI launched successfully from the fresh environment
 - Main application menu and clean exit verified
 
@@ -225,42 +217,30 @@ The project has been verified from a clean Git clone using a fresh Python virtua
 
 ### Clone
 
-```bash
-git clone <repository-url>
-cd python-business-management-system
-```
+    git clone <repository-url>
+    cd python-business-management-system
 
 ### Create a Virtual Environment
 
-```bash
-python -m venv .venv
-```
+    python -m venv .venv
 
 ### Activate the Environment
 
 #### Windows PowerShell
 
-```powershell
-.venv\Scripts\Activate.ps1
-```
+    .venv\Scripts\Activate.ps1
 
 ### Install the Project
 
-```bash
-python -m pip install -e ".[dev]"
-```
+    python -m pip install -e ".[dev]"
 
 ### Run the Application
 
-```bash
-python -m presentation.cli
-```
+    python -m presentation.cli
 
 ### Run Tests
 
-```bash
-pytest
-```
+    pytest
 
 The current tests cover database configuration, database initialization, schema behavior, repository persistence, CLI behavior, inventory rules, stock movement persistence, timestamped movement history, and integration scenarios.
 
@@ -365,6 +345,17 @@ Core sales creation and inventory deduction workflows are now integrated through
 Inventory persistence is handled through the repository layer and is covered by automated unit and integration tests.
 
 ---
+
+## 📦 Release History
+
+### v1.3.1 — Schema and Test Reconciliation
+
+- Added persistent product history database table.
+- Updated database initialization expectations to include product history.
+- Updated unit and integration database tests for the current schema.
+- Verified the complete project with 412 passing tests.
+
+**Release result:** Database schema and automated tests are synchronized with the current product history functionality.
 
 ### v1.3.0 — Master-Data Screens
 
@@ -562,8 +553,6 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 **Release result:** Persisted sales can be reconstructed with their sale-line relationships.
 
-## 📦 Release History
-
 ### v0.5.2 — Sales Calculations
 
 - Added subtotal calculation for sale lines
@@ -617,19 +606,17 @@ Inventory persistence is handled through the repository layer and is covered by 
 
 The project is developed incrementally:
 
-```text
-Understand
-    ↓
-Design
-    ↓
-Implement
-    ↓
-Test
-    ↓
-Review
-    ↓
-Commit
-```
+    Understand
+        ↓
+    Design
+        ↓
+    Implement
+        ↓
+    Test
+        ↓
+    Review
+        ↓
+    Commit
 
 Each feature is developed as part of the overall application rather than being added as an isolated demonstration.
 
@@ -660,16 +647,12 @@ For larger changes, opening an issue first is recommended so the approach can be
 
 Technical documentation and project notes are maintained in:
 
-```text
-docs/
-```
+    docs/
 
 Current documentation includes:
 
-```text
-docs/
-└── database.md
-```
+    docs/
+    └── database.md
 
 Additional documentation will be added as the project grows.
 
