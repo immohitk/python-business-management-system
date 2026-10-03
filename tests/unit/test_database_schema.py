@@ -369,6 +369,7 @@ def test_database_contains_all_core_business_tables(tmp_path):
         assert tables == [
             ("customers",),
             ("invoices",),
+            ("product_history",),
             ("products",),
             ("sale_items",),
             ("sales",),

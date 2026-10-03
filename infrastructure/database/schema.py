@@ -27,6 +27,16 @@ CREATE TABLE IF NOT EXISTS stock_movements (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+CREATE TABLE IF NOT EXISTS product_history (
+    id INTEGER PRIMARY KEY,
+    product_id INTEGER,
+    action TEXT NOT NULL,
+    product_name TEXT NOT NULL,
+    product_code TEXT NOT NULL,
+    details TEXT,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS customers (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,

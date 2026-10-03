@@ -6,6 +6,7 @@ from infrastructure.database.initialization import initialize_database
 EXPECTED_TABLES = [
     "customers",
     "invoices",
+    "product_history",
     "products",
     "sale_items",
     "sales",
