@@ -16,6 +16,7 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import StockMovementRepository
 from infrastructure.repositories.supplier_repository import SupplierRepository
 from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
+from application.services.tax_charge_service import TaxChargeService
 
 
 def create_database(tmp_path: Path):
@@ -522,3 +523,45 @@ def test_tax_charge_survives_connection_reopen(tmp_path):
         assert stored_tax_charge == tax_charge
     finally:
         reopened_connection.close()
+
+
+def test_tax_charge_service_persists_through_repository(tmp_path):
+    connection = create_database(tmp_path)
+
+    try:
+        repository = TaxChargeRepository(connection)
+        service = TaxChargeService(repository)
+
+        tax_charge = TaxCharge(
+            id=None,
+            name="GST",
+            type="Tax",
+            calculation="Percentage",
+            value=18.0,
+            scope="Overall",
+            product_id=None,
+            is_active=True,
+            created_at="2026-09-17T20:00:00",
+        )
+
+        service.add_tax_charge(tax_charge)
+
+        stored_tax_charge = service.get_tax_charge(tax_charge.id)
+
+        assert stored_tax_charge == tax_charge
+
+        tax_charge.value = 12.0
+        service.update_tax_charge(tax_charge)
+
+        updated_tax_charge = service.get_tax_charge(tax_charge.id)
+
+        assert updated_tax_charge == tax_charge
+
+        assert service.get_tax_charges() == [tax_charge]
+
+        service.delete_tax_charge(tax_charge.id)
+
+        assert service.get_tax_charge(tax_charge.id) is None
+        assert service.get_tax_charges() == []
+    finally:
+        connection.close()
