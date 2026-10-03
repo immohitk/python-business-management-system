@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS product_history (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS taxes_charges (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    calculation TEXT NOT NULL,
+    value REAL NOT NULL,
+    scope TEXT NOT NULL,
+    product_id INTEGER,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
 CREATE TABLE IF NOT EXISTS customers (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,

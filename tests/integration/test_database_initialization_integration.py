@@ -13,6 +13,7 @@ EXPECTED_TABLES = [
     "schema_version",
     "stock_movements",
     "suppliers",
+    "taxes_charges",
 ]
 
 

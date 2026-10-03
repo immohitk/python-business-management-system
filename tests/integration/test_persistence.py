@@ -6,6 +6,7 @@ from domain.entities.product import Product
 from domain.entities.sale import Sale
 from domain.entities.sale_item import SaleItem
 from domain.entities.supplier import Supplier
+from domain.entities.tax_charge import TaxCharge
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.customer_repository import CustomerRepository
@@ -14,6 +15,7 @@ from infrastructure.repositories.product_repository import ProductRepository
 from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import StockMovementRepository
 from infrastructure.repositories.supplier_repository import SupplierRepository
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 
 
 def create_database(tmp_path: Path):
@@ -401,5 +403,122 @@ def test_product_stock_movements_survive_connection_reopen(tmp_path):
 
         assert stored_product is not None
         assert stored_product.movements == product.movements
+    finally:
+        reopened_connection.close()
+
+
+def test_tax_charge_persistence(tmp_path):
+    connection = create_database(tmp_path)
+
+    try:
+        repository = TaxChargeRepository(connection)
+
+        tax_charge = TaxCharge(
+            id=None,
+            name="GST",
+            type="Tax",
+            calculation="Percentage",
+            value=18.0,
+            scope="Overall",
+            product_id=None,
+            is_active=True,
+            created_at="2026-09-16T20:00:00",
+        )
+
+        repository.add(tax_charge)
+
+        stored_tax_charge = repository.get_by_id(tax_charge.id)
+
+        assert stored_tax_charge == tax_charge
+    finally:
+        connection.close()
+
+
+def test_tax_charge_repository_crud(tmp_path):
+    connection = create_database(tmp_path)
+
+    try:
+        repository = TaxChargeRepository(connection)
+
+        first_tax = TaxCharge(
+            id=None,
+            name="GST",
+            type="Tax",
+            calculation="Percentage",
+            value=18.0,
+            scope="Overall",
+            product_id=None,
+            is_active=True,
+            created_at="2026-09-16T20:00:00",
+        )
+
+        second_charge = TaxCharge(
+            id=None,
+            name="Delivery Charge",
+            type="Charge",
+            calculation="Fixed Amount",
+            value=100.0,
+            scope="Overall",
+            product_id=None,
+            is_active=True,
+            created_at="2026-09-16T20:05:00",
+        )
+
+        repository.add(first_tax)
+        repository.add(second_charge)
+
+        assert repository.get_by_id(first_tax.id) == first_tax
+        assert repository.get_all() == [first_tax, second_charge]
+
+        first_tax.value = 12.0
+        first_tax.is_active = False
+
+        repository.update(first_tax)
+
+        stored_tax = repository.get_by_id(first_tax.id)
+
+        assert stored_tax == first_tax
+        assert repository.get_all() == [first_tax, second_charge]
+
+        repository.delete(second_charge.id)
+
+        assert repository.get_by_id(second_charge.id) is None
+        assert repository.get_all() == [first_tax]
+    finally:
+        connection.close()
+
+
+def test_tax_charge_survives_connection_reopen(tmp_path):
+    database_path = tmp_path / "integration.db"
+    initialize_database(database_path)
+
+    connection = get_connection(database_path)
+
+    tax_charge = TaxCharge(
+        id=None,
+        name="GST",
+        type="Tax",
+        calculation="Percentage",
+        value=18.0,
+        scope="Overall",
+        product_id=None,
+        is_active=True,
+        created_at="2026-09-16T21:00:00",
+    )
+
+    try:
+        repository = TaxChargeRepository(connection)
+        repository.add(tax_charge)
+    finally:
+        connection.close()
+
+    reopened_connection = get_connection(database_path)
+
+    try:
+        repository = TaxChargeRepository(reopened_connection)
+
+        stored_tax_charge = repository.get_by_id(tax_charge.id)
+
+        assert stored_tax_charge == tax_charge
     finally:
         reopened_connection.close()
