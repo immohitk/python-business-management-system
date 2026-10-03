@@ -87,6 +87,15 @@ CREATE TABLE IF NOT EXISTS sale_items (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+CREATE TABLE IF NOT EXISTS sale_payments (
+    id INTEGER PRIMARY KEY,
+    sale_id INTEGER NOT NULL,
+    payment_mode TEXT NOT NULL,
+    amount REAL NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (sale_id) REFERENCES sales(id)
+);
+
 CREATE TABLE IF NOT EXISTS invoices (
     id INTEGER PRIMARY KEY,
     sale_id INTEGER NOT NULL,

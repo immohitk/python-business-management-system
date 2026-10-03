@@ -9,6 +9,7 @@ EXPECTED_TABLES = [
     "product_history",
     "products",
     "sale_items",
+    "sale_payments",
     "sales",
     "schema_version",
     "stock_movements",

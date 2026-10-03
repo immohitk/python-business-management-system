@@ -7,6 +7,7 @@ from domain.entities.sale import Sale
 from domain.entities.sale_item import SaleItem
 from domain.entities.supplier import Supplier
 from domain.entities.tax_charge import TaxCharge
+from domain.entities.sale_payment import SalePayment
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.customer_repository import CustomerRepository
@@ -16,6 +17,9 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import StockMovementRepository
 from infrastructure.repositories.supplier_repository import SupplierRepository
 from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
+from infrastructure.repositories.sale_payment_repository import (
+    SalePaymentRepository,
+)
 from application.services.tax_charge_service import TaxChargeService
 
 
@@ -563,5 +567,53 @@ def test_tax_charge_service_persists_through_repository(tmp_path):
 
         assert service.get_tax_charge(tax_charge.id) is None
         assert service.get_tax_charges() == []
+    finally:
+        connection.close()
+
+
+def test_sale_payment_repository_persistence(tmp_path):
+    connection = create_database(tmp_path)
+
+    try:
+        customer_repository = CustomerRepository(connection)
+        sale_repository = SaleRepository(connection)
+        repository = SalePaymentRepository(connection)
+
+        customer = Customer(
+            id=None,
+            name="Payment Customer",
+            phone="9000000011",
+            email="payment@example.com",
+            address="Bengaluru",
+            created_at="2026-10-04T01:00:00",
+        )
+
+        customer_repository.add(customer)
+
+        sale = Sale(
+            id=None,
+            customer_id=customer.id,
+            sale_date="2026-10-04",
+            total_amount=1000.0,
+            created_at="2026-10-04T01:00:00",
+        )
+
+        sale_repository.add(sale)
+
+        payment = SalePayment(
+            id=None,
+            sale_id=sale.id,
+            payment_mode="UPI",
+            amount=600.0,
+            created_at="2026-10-04T01:10:00",
+        )
+
+        repository.add(payment)
+
+        assert payment.id is not None
+        assert repository.get_by_id(payment.id) == payment
+        assert repository.get_by_sale_id(sale.id) == [payment]
+        assert repository.get_all() == [payment]
+
     finally:
         connection.close()

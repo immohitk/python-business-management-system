@@ -9,7 +9,10 @@ from application.services.reporting_service import ReportingService
 from application.services.sale_invoice_service import SaleInvoiceService
 from application.services.sale_service import SaleService
 from application.services.supplier_service import SupplierService
+from application.services.tax_charge_service import TaxChargeService
+from application.services.sale_payment_service import SalePaymentService
 from infrastructure.database.connection import get_connection
+from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.customer_repository import CustomerRepository
 from infrastructure.repositories.invoice_repository import InvoiceRepository
 from infrastructure.repositories.product_repository import ProductRepository
@@ -19,10 +22,14 @@ from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
 from infrastructure.repositories.supplier_repository import SupplierRepository
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
+from infrastructure.repositories.sale_payment_repository import SalePaymentRepository
 
 
 class CLIContext:
     def __init__(self) -> None:
+        initialize_database()
+
         self.connection = get_connection()
 
         product_repository = ProductRepository(self.connection)
@@ -32,10 +39,14 @@ class CLIContext:
         invoice_repository = InvoiceRepository(self.connection)
         stock_movement_repository = StockMovementRepository(self.connection)
         reporting_repository = ReportingRepository(self.connection)
+        tax_charge_repository = TaxChargeRepository(self.connection)
+        sale_payment_repository = SalePaymentRepository(self.connection)
 
         self.product_service = ProductService(product_repository)
         self.customer_service = CustomerService(customer_repository)
         self.supplier_service = SupplierService(supplier_repository)
+        self.tax_charge_service = TaxChargeService(tax_charge_repository)
+        self.sale_payment_service = SalePaymentService(sale_payment_repository)
 
         self.inventory_service = InventoryService(
             product_repository,
