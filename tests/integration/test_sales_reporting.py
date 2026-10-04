@@ -11,6 +11,9 @@ from application.services.product_service import ProductService
 from application.services.sale_service import SaleService
 from application.services.sale_calculation_service import SaleCalculationService
 from application.services.tax_charge_calculator import TaxChargeCalculator
+from application.services.payment_balance_service import PaymentBalanceService
+from application.services.sale_payment_service import SalePaymentService
+from infrastructure.repositories.sale_payment_repository import SalePaymentRepository
 from infrastructure.repositories.customer_repository import CustomerRepository
 from infrastructure.repositories.product_repository import ProductRepository
 from infrastructure.repositories.sale_repository import SaleRepository
@@ -160,11 +163,17 @@ def test_sales_reporting_works_with_application_service_created_sale(
             TaxChargeCalculator()
         )
 
+        sale_payment_repository = SalePaymentRepository(connection)
+        sale_payment_service = SalePaymentService(sale_payment_repository)
+        payment_balance_service = PaymentBalanceService()
+
         sale_service = SaleService(
             sale_repository,
             inventory_service,
             tax_charge_repository,
             sale_calculation_service,
+            sale_payment_service,
+            payment_balance_service,
         )
         reporting_service = ReportingService(reporting_repository)
 

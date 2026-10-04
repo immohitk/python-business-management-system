@@ -4,6 +4,9 @@ from application.services.inventory_service import InventoryService
 from application.services.sale_calculation_service import SaleCalculationService
 from application.services.sale_service import SaleService
 from application.services.tax_charge_calculator import TaxChargeCalculator
+from application.services.payment_balance_service import PaymentBalanceService
+from application.services.sale_payment_service import SalePaymentService
+from infrastructure.repositories.sale_payment_repository import SalePaymentRepository
 from domain.entities.product import Product
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
@@ -37,6 +40,9 @@ def create_sale_service(connection):
     sale_calculation_service = SaleCalculationService(
         TaxChargeCalculator()
     )
+    sale_payment_repository = SalePaymentRepository(connection)
+    sale_payment_service = SalePaymentService(sale_payment_repository)
+    payment_balance_service = PaymentBalanceService()
 
     return (
         SaleService(
@@ -44,6 +50,8 @@ def create_sale_service(connection):
             inventory_service,
             tax_charge_repository,
             sale_calculation_service,
+            sale_payment_service,
+            payment_balance_service,
         ),
         sale_repository,
         product_repository,

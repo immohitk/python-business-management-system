@@ -11,6 +11,8 @@ from application.services.sale_invoice_service import SaleInvoiceService
 from application.services.sale_calculation_service import SaleCalculationService
 from application.services.tax_charge_calculator import TaxChargeCalculator
 from application.services.reporting_service import ReportingService
+from application.services.payment_balance_service import PaymentBalanceService
+from application.services.sale_payment_service import SalePaymentService
 from domain.entities.customer import Customer
 from domain.entities.product import Product
 from domain.entities.supplier import Supplier
@@ -29,6 +31,7 @@ from infrastructure.repositories.stock_movement_repository import (
 from infrastructure.repositories.invoice_repository import InvoiceRepository
 from infrastructure.repositories.reporting_repository import ReportingRepository
 from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
+from infrastructure.repositories.sale_payment_repository import SalePaymentRepository
 
 
 def create_database(tmp_path: Path):
@@ -285,11 +288,17 @@ def test_product_customer_sale_inventory_workflow_integrates_through_application
             TaxChargeCalculator()
         )
 
+        sale_payment_repository = SalePaymentRepository(connection)
+        sale_payment_service = SalePaymentService(sale_payment_repository)
+        payment_balance_service = PaymentBalanceService()
+
         sale_service = SaleService(
             sale_repository,
             inventory_service,
             tax_charge_repository,
             sale_calculation_service,
+            sale_payment_service,
+            payment_balance_service,
         )
 
         product = Product(
@@ -392,11 +401,17 @@ def test_complete_business_workflow_integrates_all_application_services(
             TaxChargeCalculator()
         )
 
+        sale_payment_repository = SalePaymentRepository(connection)
+        sale_payment_service = SalePaymentService(sale_payment_repository)
+        payment_balance_service = PaymentBalanceService()
+
         sale_service = SaleService(
             sale_repository,
             inventory_service,
             tax_charge_repository,
             sale_calculation_service,
+            sale_payment_service,
+            payment_balance_service,
         )
 
         invoice_service = InvoiceService(invoice_repository)

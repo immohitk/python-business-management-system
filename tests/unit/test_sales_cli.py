@@ -5,6 +5,8 @@ from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
 from application.services.sale_calculation_service import SaleCalculationService
 from application.services.tax_charge_calculator import TaxChargeCalculator
+from application.services.payment_balance_service import PaymentBalanceService
+from application.services.sale_payment_service import SalePaymentService
 from domain.entities.product import Product
 from domain.entities.sale import Sale
 from infrastructure.database.connection import get_connection
@@ -15,6 +17,7 @@ from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
 from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
+from infrastructure.repositories.sale_payment_repository import SalePaymentRepository
 from presentation.cli.sales import (
     create_sale,
     create_sale_service,
@@ -213,13 +216,19 @@ def test_create_sale_integrates_with_sale_service_and_inventory(
 
         sale_calculation_service = SaleCalculationService(
             TaxChargeCalculator()
-    )
+        )
+
+        sale_payment_repository = SalePaymentRepository(connection)
+        sale_payment_service = SalePaymentService(sale_payment_repository)
+        payment_balance_service = PaymentBalanceService()
 
         service = SaleService(
             sale_repository,
             inventory_service,
             tax_charge_repository,
             sale_calculation_service,
+            sale_payment_service,
+            payment_balance_service,
         )
 
         product = Product(
@@ -368,11 +377,17 @@ def test_list_sales_integrates_with_database(tmp_path, capsys):
             TaxChargeCalculator()
         )
 
+        sale_payment_repository = SalePaymentRepository(connection)
+        sale_payment_service = SalePaymentService(sale_payment_repository)
+        payment_balance_service = PaymentBalanceService()
+
         service = SaleService(
             sale_repository,
             inventory_service,
             tax_charge_repository,
             sale_calculation_service,
+            sale_payment_service,
+            payment_balance_service,
         )
 
         sale = Sale(

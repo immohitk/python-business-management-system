@@ -4,6 +4,8 @@ from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
 from application.services.sale_calculation_service import SaleCalculationService
 from application.services.tax_charge_calculator import TaxChargeCalculator
+from application.services.payment_balance_service import PaymentBalanceService
+from application.services.sale_payment_service import SalePaymentService
 from domain.entities.sale import Sale
 from domain.entities.sale_line import SaleLine
 from infrastructure.database.connection import get_connection
@@ -13,6 +15,7 @@ from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
 from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
+from infrastructure.repositories.sale_payment_repository import SalePaymentRepository
 
 
 def create_sale_service() -> tuple[SaleService, object]:
@@ -30,6 +33,10 @@ def create_sale_service() -> tuple[SaleService, object]:
 
     tax_charge_repository = TaxChargeRepository(connection)
 
+    sale_payment_repository = SalePaymentRepository(connection)
+    sale_payment_service = SalePaymentService(sale_payment_repository)
+    payment_balance_service = PaymentBalanceService()
+
     sale_calculation_service = SaleCalculationService(
         TaxChargeCalculator()
     )
@@ -39,6 +46,8 @@ def create_sale_service() -> tuple[SaleService, object]:
         inventory_service,
         tax_charge_repository,
         sale_calculation_service,
+        sale_payment_service,
+        payment_balance_service,
     )
 
     return service, connection

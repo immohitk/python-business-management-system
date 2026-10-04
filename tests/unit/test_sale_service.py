@@ -4,15 +4,21 @@ from pathlib import Path
 from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
 from application.services.sale_calculation_service import SaleCalculationService
+from application.services.sale_payment_service import SalePaymentService
 from application.services.tax_charge_calculator import TaxChargeCalculator
+from application.services.payment_balance_service import PaymentBalanceService
 from domain.entities.product import Product
 from domain.entities.sale import Sale
 from domain.entities.sale_line import SaleLine
 from domain.entities.tax_charge import TaxCharge
+from domain.entities.sale_payment import SalePayment
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.product_repository import ProductRepository
 from infrastructure.repositories.sale_repository import SaleRepository
+from infrastructure.repositories.sale_payment_repository import (
+    SalePaymentRepository,
+)
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
@@ -38,6 +44,10 @@ def create_service(
 
     tax_charge_repository = TaxChargeRepository(connection)
 
+    sale_payment_repository = SalePaymentRepository(connection)
+    sale_payment_service = SalePaymentService(sale_payment_repository)
+    payment_balance_service = PaymentBalanceService()
+
     sale_calculation_service = SaleCalculationService(
         TaxChargeCalculator()
     )
@@ -51,7 +61,9 @@ def create_service(
         sale_repository,
         inventory_service,
         tax_charge_repository,
-         sale_calculation_service,
+        sale_calculation_service,
+        sale_payment_service,
+        payment_balance_service,
     )
 
     return (
@@ -480,7 +492,6 @@ def test_create_sale_rolls_back_on_persistence_failure(
         assert product.quantity == 10
 
         assert stock_movement_repository.get_movements(1) == []
-
     finally:
         connection.close()
 
@@ -503,6 +514,7 @@ def test_get_sales_returns_all_sales(tmp_path):
             created_at="2026-09-21T20:00:00",
             lines=[],
         )
+
         second_sale = Sale(
             id=None,
             customer_id=2,
@@ -593,5 +605,244 @@ def test_create_sale_applies_tax_and_charge_to_total(tmp_path) -> None:
 
         assert stored_sale is not None
         assert stored_sale.total_amount == 1230.0
+    finally:
+        connection.close()
+
+
+def test_create_sale_persists_single_payment(tmp_path):
+    (
+        service,
+        _,
+        product_repository,
+        _,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        create_products(product_repository)
+
+        sale = create_sale()
+
+        payments = [
+            SalePayment(
+                id=None,
+                sale_id=0,
+                payment_mode="Cash",
+                amount=350.0,
+                created_at="2026-10-04T21:30:00",
+            )
+        ]
+
+        result = service.create_sale(sale, payments=payments)
+
+        assert result.id is not None
+
+        payments[0].sale_id = result.id
+
+        sale_payment_repository = SalePaymentRepository(connection)
+        stored_payments = sale_payment_repository.get_by_sale_id(result.id)
+
+        assert len(stored_payments) == 1
+        assert stored_payments[0].sale_id == result.id
+        assert stored_payments[0].payment_mode == "Cash"
+        assert stored_payments[0].amount == 350.0
+    finally:
+        connection.close()
+
+
+def test_create_sale_persists_multiple_payments(tmp_path):
+    (
+        service,
+        _,
+        product_repository,
+        _,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        create_products(product_repository)
+
+        sale = create_sale()
+
+        payments = [
+            SalePayment(
+                id=None,
+                sale_id=0,
+                payment_mode="Cash",
+                amount=100.0,
+                created_at="2026-10-04T21:30:00",
+            ),
+            SalePayment(
+                id=None,
+                sale_id=0,
+                payment_mode="UPI",
+                amount=150.0,
+                created_at="2026-10-04T21:31:00",
+            ),
+            SalePayment(
+                id=None,
+                sale_id=0,
+                payment_mode="Card",
+                amount=100.0,
+                created_at="2026-10-04T21:32:00",
+            ),
+        ]
+
+        result = service.create_sale(sale, payments=payments)
+
+        assert result.id is not None
+
+        sale_payment_repository = SalePaymentRepository(connection)
+        stored_payments = sale_payment_repository.get_by_sale_id(result.id)
+
+        assert len(stored_payments) == 3
+
+        assert stored_payments[0].sale_id == result.id
+        assert stored_payments[0].payment_mode == "Cash"
+        assert stored_payments[0].amount == 100.0
+
+        assert stored_payments[1].sale_id == result.id
+        assert stored_payments[1].payment_mode == "UPI"
+        assert stored_payments[1].amount == 150.0
+
+        assert stored_payments[2].sale_id == result.id
+        assert stored_payments[2].payment_mode == "Card"
+        assert stored_payments[2].amount == 100.0
+    finally:
+        connection.close()
+
+
+def test_create_sale_persists_single_payment(tmp_path):
+    (
+        service,
+        _,
+        product_repository,
+        _,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        create_products(product_repository)
+
+        sale = create_sale()
+
+        result = service.create_sale(
+            sale,
+            payments=[
+                ("Cash", 350.0),
+            ],
+        )
+
+        assert result.id is not None
+
+        sale_payment_repository = SalePaymentRepository(connection)
+        stored_payments = sale_payment_repository.get_by_sale_id(result.id)
+
+        assert len(stored_payments) == 1
+        assert stored_payments[0].sale_id == result.id
+        assert stored_payments[0].payment_mode == "Cash"
+        assert stored_payments[0].amount == 350.0
+    finally:
+        connection.close()
+
+
+def test_create_sale_persists_multiple_payments(tmp_path):
+    (
+        service,
+        _,
+        product_repository,
+        _,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        create_products(product_repository)
+
+        sale = create_sale()
+
+        result = service.create_sale(
+            sale,
+            payments=[
+                ("Cash", 100.0),
+                ("UPI", 150.0),
+                ("Card", 100.0),
+            ],
+        )
+
+        assert result.id is not None
+
+        sale_payment_repository = SalePaymentRepository(connection)
+        stored_payments = sale_payment_repository.get_by_sale_id(result.id)
+
+        assert len(stored_payments) == 3
+
+        assert stored_payments[0].sale_id == result.id
+        assert stored_payments[0].payment_mode == "Cash"
+        assert stored_payments[0].amount == 100.0
+
+        assert stored_payments[1].sale_id == result.id
+        assert stored_payments[1].payment_mode == "UPI"
+        assert stored_payments[1].amount == 150.0
+
+        assert stored_payments[2].sale_id == result.id
+        assert stored_payments[2].payment_mode == "Card"
+        assert stored_payments[2].amount == 100.0
+    finally:
+        connection.close()
+
+
+def test_create_sale_rolls_back_when_payment_persistence_fails(
+    tmp_path,
+    monkeypatch,
+):
+    (
+        service,
+        sale_repository,
+        product_repository,
+        stock_movement_repository,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        create_products(product_repository)
+
+        def failing_add_payment(payment):
+            raise RuntimeError("payment persistence failed")
+
+        monkeypatch.setattr(
+            service.sale_payment_service,
+            "add_payment",
+            failing_add_payment,
+        )
+
+        sale = create_sale()
+
+        with pytest.raises(
+            RuntimeError,
+            match="payment persistence failed",
+        ):
+            service.create_sale(
+                sale,
+                payments=[
+                    ("Cash", 350.0),
+                ],
+            )
+
+        assert sale.id is not None
+
+        assert sale_repository.get_by_id(sale.id) is None
+        assert sale_repository.get_items(sale.id) == []
+
+        first_product = product_repository.get_by_id(1)
+        second_product = product_repository.get_by_id(2)
+
+        assert first_product is not None
+        assert second_product is not None
+
+        assert first_product.quantity == 10
+        assert second_product.quantity == 10
+
+        assert stock_movement_repository.get_movements(1) == []
+        assert stock_movement_repository.get_movements(2) == []
     finally:
         connection.close()
