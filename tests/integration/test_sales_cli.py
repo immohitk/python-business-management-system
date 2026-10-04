@@ -1,7 +1,9 @@
 from pathlib import Path
 
 from application.services.inventory_service import InventoryService
+from application.services.sale_calculation_service import SaleCalculationService
 from application.services.sale_service import SaleService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from domain.entities.product import Product
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
@@ -10,6 +12,7 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 from presentation.cli.sales import create_sale
 
 
@@ -29,10 +32,18 @@ def create_sale_service(connection):
         stock_movement_repository,
     )
 
+    tax_charge_repository = TaxChargeRepository(connection)
+
+    sale_calculation_service = SaleCalculationService(
+        TaxChargeCalculator()
+    )
+
     return (
         SaleService(
             sale_repository,
             inventory_service,
+            tax_charge_repository,
+            sale_calculation_service,
         ),
         sale_repository,
         product_repository,
@@ -118,6 +129,7 @@ def test_sale_cli_rolls_back_when_stock_is_insufficient(
     capsys,
 ) -> None:
     connection = create_database(tmp_path)
+
     try:
         (
             sale_service,
@@ -135,6 +147,7 @@ def test_sale_cli_rolls_back_when_stock_is_insufficient(
             quantity=2,
             created_at="2026-09-22T19:00:00",
         )
+
         product_repository.add(product)
 
         inputs = iter(
@@ -147,6 +160,7 @@ def test_sale_cli_rolls_back_when_stock_is_insufficient(
                 "n",
             ]
         )
+
         monkeypatch.setattr(
             "builtins.input",
             lambda _: next(inputs),
@@ -162,10 +176,13 @@ def test_sale_cli_rolls_back_when_stock_is_insufficient(
         assert stored_sale is None
 
         stored_product = product_repository.get_by_id(product.id)
+
         assert stored_product is not None
         assert stored_product.quantity == 2
 
         movements = stock_movement_repository.get_movements(product.id)
+
         assert movements == []
+
     finally:
         connection.close()

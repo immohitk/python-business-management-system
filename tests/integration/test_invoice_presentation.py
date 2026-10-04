@@ -8,6 +8,8 @@ from application.services.invoice_service import InvoiceService
 from application.services.sale_invoice_service import SaleInvoiceService
 from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
+from application.services.sale_calculation_service import SaleCalculationService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from domain.entities.customer import Customer
 from domain.entities.invoice import Invoice
 from domain.entities.product import Product
@@ -23,6 +25,7 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 
 
 def create_test_environment(
@@ -304,9 +307,17 @@ def test_sale_service_to_invoice_service_workflow_integrates_with_database(
             stock_movement_repository,
         )
 
+        tax_charge_repository = TaxChargeRepository(connection)
+
+        sale_calculation_service = SaleCalculationService(
+            TaxChargeCalculator()
+        )
+
         sale_service = SaleService(
             sale_repository=sale_repository,
             inventory_service=inventory_service,
+            tax_charge_repository=tax_charge_repository,
+            sale_calculation_service=sale_calculation_service,
         )
 
         sale = Sale(

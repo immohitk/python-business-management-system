@@ -8,6 +8,8 @@ from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
 from application.services.invoice_service import InvoiceService
 from application.services.sale_invoice_service import SaleInvoiceService
+from application.services.sale_calculation_service import SaleCalculationService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from application.services.reporting_service import ReportingService
 from domain.entities.customer import Customer
 from domain.entities.product import Product
@@ -26,6 +28,7 @@ from infrastructure.repositories.stock_movement_repository import (
 )
 from infrastructure.repositories.invoice_repository import InvoiceRepository
 from infrastructure.repositories.reporting_repository import ReportingRepository
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 
 
 def create_database(tmp_path: Path):
@@ -276,9 +279,17 @@ def test_product_customer_sale_inventory_workflow_integrates_through_application
             stock_movement_repository,
         )
 
+        tax_charge_repository = TaxChargeRepository(connection)
+
+        sale_calculation_service = SaleCalculationService(
+            TaxChargeCalculator()
+        )
+
         sale_service = SaleService(
             sale_repository,
             inventory_service,
+            tax_charge_repository,
+            sale_calculation_service,
         )
 
         product = Product(
@@ -375,9 +386,17 @@ def test_complete_business_workflow_integrates_all_application_services(
             stock_movement_repository,
         )
 
+        tax_charge_repository = TaxChargeRepository(connection)
+
+        sale_calculation_service = SaleCalculationService(
+            TaxChargeCalculator()
+        )
+
         sale_service = SaleService(
             sale_repository,
             inventory_service,
+            tax_charge_repository,
+            sale_calculation_service,
         )
 
         invoice_service = InvoiceService(invoice_repository)

@@ -9,6 +9,8 @@ from application.services.customer_service import CustomerService
 from application.services.inventory_service import InventoryService
 from application.services.product_service import ProductService
 from application.services.sale_service import SaleService
+from application.services.sale_calculation_service import SaleCalculationService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from infrastructure.repositories.customer_repository import CustomerRepository
 from infrastructure.repositories.product_repository import ProductRepository
 from infrastructure.repositories.sale_repository import SaleRepository
@@ -18,6 +20,7 @@ from infrastructure.repositories.stock_movement_repository import (
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.reporting_repository import ReportingRepository
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 
 
 def create_service(tmp_path: Path) -> tuple[ReportingService, object]:
@@ -150,9 +153,18 @@ def test_sales_reporting_works_with_application_service_created_sale(
             product_repository,
             stock_movement_repository,
         )
+
+        tax_charge_repository = TaxChargeRepository(connection)
+
+        sale_calculation_service = SaleCalculationService(
+            TaxChargeCalculator()
+        )
+
         sale_service = SaleService(
             sale_repository,
             inventory_service,
+            tax_charge_repository,
+            sale_calculation_service,
         )
         reporting_service = ReportingService(reporting_repository)
 

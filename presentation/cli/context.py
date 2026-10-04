@@ -11,6 +11,8 @@ from application.services.sale_service import SaleService
 from application.services.supplier_service import SupplierService
 from application.services.tax_charge_service import TaxChargeService
 from application.services.sale_payment_service import SalePaymentService
+from application.services.sale_calculation_service import SaleCalculationService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.customer_repository import CustomerRepository
@@ -40,6 +42,9 @@ class CLIContext:
         stock_movement_repository = StockMovementRepository(self.connection)
         reporting_repository = ReportingRepository(self.connection)
         tax_charge_repository = TaxChargeRepository(self.connection)
+        sale_calculation_service = SaleCalculationService(
+            TaxChargeCalculator()
+        )
         sale_payment_repository = SalePaymentRepository(self.connection)
 
         self.product_service = ProductService(product_repository)
@@ -56,6 +61,8 @@ class CLIContext:
         self.sale_service = SaleService(
             sale_repository,
             self.inventory_service,
+            tax_charge_repository,
+            sale_calculation_service,
         )
 
         self.invoice_service = InvoiceService(invoice_repository)

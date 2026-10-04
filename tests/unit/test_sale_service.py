@@ -3,9 +3,12 @@ from pathlib import Path
 
 from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
+from application.services.sale_calculation_service import SaleCalculationService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from domain.entities.product import Product
 from domain.entities.sale import Sale
 from domain.entities.sale_line import SaleLine
+from domain.entities.tax_charge import TaxCharge
 from infrastructure.database.connection import get_connection
 from infrastructure.database.initialization import initialize_database
 from infrastructure.repositories.product_repository import ProductRepository
@@ -13,6 +16,7 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 
 
 def create_service(
@@ -32,6 +36,12 @@ def create_service(
     product_repository = ProductRepository(connection)
     stock_movement_repository = StockMovementRepository(connection)
 
+    tax_charge_repository = TaxChargeRepository(connection)
+
+    sale_calculation_service = SaleCalculationService(
+        TaxChargeCalculator()
+    )
+
     inventory_service = InventoryService(
         product_repository,
         stock_movement_repository,
@@ -40,6 +50,8 @@ def create_service(
     service = SaleService(
         sale_repository,
         inventory_service,
+        tax_charge_repository,
+         sale_calculation_service,
     )
 
     return (
@@ -512,5 +524,74 @@ def test_get_sales_returns_all_sales(tmp_path):
         assert sales[1].id == second_sale.id
         assert sales[1].customer_id == 2
         assert sales[1].total_amount == 200.0
+    finally:
+        connection.close()
+
+
+def test_create_sale_applies_tax_and_charge_to_total(tmp_path) -> None:
+    (
+        service,
+        sale_repository,
+        product_repository,
+        _,
+        connection,
+    ) = create_service(tmp_path)
+
+    try:
+        create_products(product_repository)
+
+        tax_charge_repository = TaxChargeRepository(connection)
+
+        tax_charge_repository.add(
+            TaxCharge(
+                id=None,
+                name="GST",
+                type="Tax",
+                calculation="Percentage",
+                value=18.0,
+                scope="Overall",
+                product_id=None,
+                is_active=True,
+                created_at="2026-10-04T21:00:00",
+            )
+        )
+
+        tax_charge_repository.add(
+            TaxCharge(
+                id=None,
+                name="Delivery Charge",
+                type="Charge",
+                calculation="Fixed Amount",
+                value=50.0,
+                scope="Overall",
+                product_id=None,
+                is_active=True,
+                created_at="2026-10-04T21:00:00",
+            )
+        )
+
+        sale = Sale(
+            id=None,
+            customer_id=1,
+            sale_date="2026-10-04",
+            total_amount=0.0,
+            created_at="2026-10-04T21:00:00",
+            lines=[
+                SaleLine(
+                    product_id=1,
+                    quantity=2,
+                    unit_price=500.0,
+                ),
+            ],
+        )
+
+        result = service.create_sale(sale)
+
+        assert result.total_amount == 1230.0
+
+        stored_sale = sale_repository.get_by_id(result.id)
+
+        assert stored_sale is not None
+        assert stored_sale.total_amount == 1230.0
     finally:
         connection.close()

@@ -2,6 +2,8 @@ from datetime import datetime
 
 from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
+from application.services.sale_calculation_service import SaleCalculationService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from domain.entities.sale import Sale
 from domain.entities.sale_line import SaleLine
 from infrastructure.database.connection import get_connection
@@ -10,6 +12,7 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 
 
 def create_sale_service() -> tuple[SaleService, object]:
@@ -25,9 +28,17 @@ def create_sale_service() -> tuple[SaleService, object]:
         stock_movement_repository,
     )
 
+    tax_charge_repository = TaxChargeRepository(connection)
+
+    sale_calculation_service = SaleCalculationService(
+        TaxChargeCalculator()
+    )
+
     service = SaleService(
         sale_repository,
         inventory_service,
+        tax_charge_repository,
+        sale_calculation_service,
     )
 
     return service, connection

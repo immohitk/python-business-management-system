@@ -3,6 +3,8 @@ from unittest.mock import Mock, patch
 
 from application.services.inventory_service import InventoryService
 from application.services.sale_service import SaleService
+from application.services.sale_calculation_service import SaleCalculationService
+from application.services.tax_charge_calculator import TaxChargeCalculator
 from domain.entities.product import Product
 from domain.entities.sale import Sale
 from infrastructure.database.connection import get_connection
@@ -12,6 +14,7 @@ from infrastructure.repositories.sale_repository import SaleRepository
 from infrastructure.repositories.stock_movement_repository import (
     StockMovementRepository,
 )
+from infrastructure.repositories.tax_charge_repository import TaxChargeRepository
 from presentation.cli.sales import (
     create_sale,
     create_sale_service,
@@ -206,9 +209,17 @@ def test_create_sale_integrates_with_sale_service_and_inventory(
             stock_movement_repository,
         )
 
+        tax_charge_repository = TaxChargeRepository(connection)
+
+        sale_calculation_service = SaleCalculationService(
+            TaxChargeCalculator()
+    )
+
         service = SaleService(
             sale_repository,
             inventory_service,
+            tax_charge_repository,
+            sale_calculation_service,
         )
 
         product = Product(
@@ -350,9 +361,18 @@ def test_list_sales_integrates_with_database(tmp_path, capsys):
             product_repository,
             stock_movement_repository,
         )
+
+        tax_charge_repository = TaxChargeRepository(connection)
+
+        sale_calculation_service = SaleCalculationService(
+            TaxChargeCalculator()
+        )
+
         service = SaleService(
             sale_repository,
             inventory_service,
+            tax_charge_repository,
+            sale_calculation_service,
         )
 
         sale = Sale(
