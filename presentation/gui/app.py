@@ -1,3 +1,5 @@
+import sqlite3
+import math
 import tkinter as tk
 from tkinter import messagebox, ttk
 from datetime import datetime
@@ -129,253 +131,1504 @@ class GUIApplication:
             value_label.pack()
 
     def _show_products(self) -> None:
-        title = ttk.Label(
+        # Product screen uses its own vertical scroll area because the
+        # product table plus both history sections can exceed the window height.
+        products_canvas = tk.Canvas(
             self.content,
-            text="Products",
-            font=("TkDefaultFont", 20, "bold"),
+            highlightthickness=0,
         )
-        title.pack(anchor="w", pady=(0, 15))
-
-        form = ttk.LabelFrame(
+        products_scrollbar = ttk.Scrollbar(
             self.content,
-            text="Add Product",
+            orient="vertical",
+            command=products_canvas.yview,
+        )
+        products_content = ttk.Frame(products_canvas)
+
+        products_window = products_canvas.create_window(
+            (0, 0),
+            window=products_content,
+            anchor="nw",
+        )
+
+        def update_products_scrollregion(event=None) -> None:
+            products_canvas.configure(
+                scrollregion=products_canvas.bbox("all"),
+            )
+
+        def resize_products_content(event) -> None:
+            products_canvas.itemconfigure(
+                products_window,
+                width=event.width,
+            )
+
+        products_content.bind(
+            "<Configure>",
+            update_products_scrollregion,
+        )
+        products_canvas.bind(
+            "<Configure>",
+            resize_products_content,
+        )
+        products_canvas.configure(
+            yscrollcommand=products_scrollbar.set,
+        )
+
+        products_scrollbar.pack(
+            side="right",
+            fill="y",
+        )
+        products_canvas.pack(
+            side="left",
+            fill="both",
+            expand=True,
+        )
+
+        def products_mousewheel(event) -> None:
+            products_canvas.yview_scroll(
+                int(-1 * (event.delta / 120)),
+                "units",
+            )
+
+        products_canvas.bind(
+            "<Enter>",
+            lambda event: products_canvas.bind_all(
+                "<MouseWheel>",
+                products_mousewheel,
+            ),
+        )
+        products_canvas.bind(
+            "<Leave>",
+            lambda event: products_canvas.unbind_all(
+                "<MouseWheel>",
+            ),
+        )
+
+        selected_product_id = {"value": None}
+        products_cache = []
+        sort_state = {
+            "column": "id",
+            "descending": False,
+        }
+        description_limit = 30
+
+        style = ttk.Style()
+        style.configure(
+            "Products.Treeview.Heading",
+            font=("TkDefaultFont", 10, "bold"),
+        )
+
+        top_bar = ttk.Frame(products_content)
+        top_bar.pack(
+            fill="x",
+            pady=(0, 10),
+        )
+
+        operation_frame = ttk.LabelFrame(
+            top_bar,
+            text="Product Operations",
+            padding=8,
+        )
+        operation_frame.pack(
+            side="left",
+            fill="y",
+        )
+
+        search_frame = ttk.LabelFrame(
+            top_bar,
+            text="Search",
+            padding=8,
+        )
+        search_frame.pack(
+            side="right",
+            fill="x",
+            expand=True,
+            padx=(10, 0),
+        )
+
+        search_var = tk.StringVar()
+        search_placeholder = "Search by ID, Product Name or Product Code"
+        search_placeholder_active = {"value": True}
+
+        search_entry = ttk.Entry(
+            search_frame,
+            textvariable=search_var,
+        )
+        search_entry.pack(
+            side="right",
+            fill="x",
+            expand=True,
+        )
+        search_entry.insert(
+            0,
+            search_placeholder,
+        )
+        search_entry.configure(
+            foreground="gray",
+        )
+
+        def clear_search_placeholder(event=None) -> None:
+            if search_placeholder_active["value"]:
+                search_placeholder_active["value"] = False
+                search_entry.delete(0, tk.END)
+                search_entry.configure(foreground="black")
+                render_products()
+
+        def restore_search_placeholder(event=None) -> None:
+            if not search_entry.get().strip():
+                search_placeholder_active["value"] = True
+                search_entry.delete(0, tk.END)
+                search_entry.insert(0, search_placeholder)
+                search_entry.configure(foreground="gray")
+                render_products()
+
+        search_entry.bind(
+            "<FocusIn>",
+            clear_search_placeholder,
+        )
+        search_entry.bind(
+            "<FocusOut>",
+            restore_search_placeholder,
+        )
+
+        product_frame = ttk.LabelFrame(
+            products_content,
+            text="Products",
             padding=10,
         )
-        form.pack(fill="x", pady=(0, 15))
-
-        ttk.Label(
-            form,
-            text="Name",
-        ).grid(
-            row=0,
-            column=0,
-            padx=5,
-            pady=5,
-            sticky="w",
+        product_frame.pack(
+            fill="x",
+            expand=False,
         )
 
-        name_entry = ttk.Entry(form, width=25)
-        name_entry.grid(
-            row=0,
-            column=1,
-            padx=5,
-            pady=5,
+        table_frame = ttk.Frame(
+            product_frame,
+            height=300,
         )
-
-        ttk.Label(
-            form,
-            text="Description",
-        ).grid(
-            row=0,
-            column=2,
-            padx=5,
-            pady=5,
-            sticky="w",
+        table_frame.pack(
+            fill="x",
+            expand=False,
         )
-
-        description_entry = ttk.Entry(form, width=25)
-        description_entry.grid(
-            row=0,
-            column=3,
-            padx=5,
-            pady=5,
-        )
-
-        ttk.Label(
-            form,
-            text="SKU",
-        ).grid(
-            row=1,
-            column=0,
-            padx=5,
-            pady=5,
-            sticky="w",
-        )
-
-        sku_entry = ttk.Entry(form, width=25)
-        sku_entry.grid(
-            row=1,
-            column=1,
-            padx=5,
-            pady=5,
-        )
-
-        ttk.Label(
-            form,
-            text="Price",
-        ).grid(
-            row=1,
-            column=2,
-            padx=5,
-            pady=5,
-            sticky="w",
-        )
-
-        price_entry = ttk.Entry(form, width=25)
-        price_entry.grid(
-            row=1,
-            column=3,
-            padx=5,
-            pady=5,
-        )
-
-        ttk.Label(
-            form,
-            text="Quantity",
-        ).grid(
-            row=2,
-            column=0,
-            padx=5,
-            pady=5,
-            sticky="w",
-        )
-
-        quantity_entry = ttk.Entry(form, width=25)
-        quantity_entry.grid(
-            row=2,
-            column=1,
-            padx=5,
-            pady=5,
-        )
-
-        button_frame = ttk.Frame(form)
-        button_frame.grid(
-            row=2,
-            column=2,
-            columnspan=2,
-            padx=5,
-            pady=5,
-            sticky="e",
-        )
+        table_frame.pack_propagate(False)
 
         product_list = ttk.Treeview(
-            self.content,
+            table_frame,
             columns=(
                 "id",
                 "name",
-                "description",
-                "sku",
-                "price",
+                "product_code",
                 "quantity",
+                "price",
             ),
             show="headings",
-            height=12,
+            height=10,
+            style="Products.Treeview",
         )
 
-        product_list.heading("id", text="ID")
-        product_list.heading("name", text="Name")
-        product_list.heading("description", text="Description")
-        product_list.heading("sku", text="SKU")
-        product_list.heading("price", text="Price")
-        product_list.heading("quantity", text="Quantity")
+        for column, heading in (
+            ("id", "ID"),
+            ("name", "Name"),
+            ("product_code", "Product Code"),
+            ("quantity", "Quantity"),
+            ("price", "Per Unit Price"),
+        ):
+            product_list.heading(
+                column,
+                text=heading,
+                command=lambda c=column: sort_products(c),
+            )
+            product_list.column(
+                column,
+                width=1,
+                anchor="center",
+                stretch=True,
+            )
 
-        product_list.column(
-            "id",
-            width=60,
-            anchor="center",
-            stretch=False,
+        product_scrollbar = ttk.Scrollbar(
+            table_frame,
+            orient="vertical",
+            command=product_list.yview,
         )
-
-        product_list.column(
-            "name",
-            width=180,
-            anchor="w",
+        product_list.configure(
+            yscrollcommand=product_scrollbar.set,
         )
-
-        product_list.column(
-            "description",
-            width=260,
-            anchor="w",
-        )
-
-        product_list.column(
-            "sku",
-            width=130,
-            anchor="w",
-        )
-
-        product_list.column(
-            "price",
-            width=120,
-            anchor="w",
-        )
-
-        product_list.column(
-            "quantity",
-            width=100,
-            anchor="center",
-        )
-
         product_list.pack(
+            side="left",
             fill="both",
             expand=True,
-            pady=(5, 0),
+        )
+        product_scrollbar.pack(
+            side="right",
+            fill="y",
         )
 
-        def load_products() -> None:
+        def resize_product_columns(event=None) -> None:
+            available_width = max(
+                product_list.winfo_width() - 2,
+                1,
+            )
+            widths = {
+                "id": 0.10,
+                "name": 0.27,
+                "product_code": 0.25,
+                "quantity": 0.16,
+                "price": 0.22,
+            }
+            for column, ratio in widths.items():
+                product_list.column(
+                    column,
+                    width=max(1, int(available_width * ratio)),
+                )
+
+        product_list.bind(
+            "<Configure>",
+            resize_product_columns,
+        )
+
+        edit_history_frame = ttk.LabelFrame(
+            products_content,
+            text="Edit History",
+            padding=10,
+        )
+        edit_history_frame.pack(
+            fill="x",
+            pady=(10, 0),
+        )
+
+        edit_history_table_frame = ttk.Frame(
+            edit_history_frame,
+            height=145,
+        )
+        edit_history_table_frame.pack(
+            fill="x",
+        )
+        edit_history_table_frame.pack_propagate(False)
+
+        edit_history_list = ttk.Treeview(
+            edit_history_table_frame,
+            columns=(
+                "product",
+                "product_code",
+                "changed",
+                "date",
+            ),
+            show="headings",
+            height=5,
+            style="Products.Treeview",
+        )
+
+        for column, heading in (
+            ("product", "Product"),
+            ("product_code", "Product Code"),
+            ("changed", "Changed Fields"),
+            ("date", "Date / Time"),
+        ):
+            edit_history_list.heading(
+                column,
+                text=heading,
+                command=lambda c=column: sort_edit_history(c),
+            )
+            edit_history_list.column(
+                column,
+                width=1,
+                anchor="center",
+                stretch=True,
+            )
+
+        edit_scrollbar = ttk.Scrollbar(
+            edit_history_table_frame,
+            orient="vertical",
+            command=edit_history_list.yview,
+        )
+        edit_history_list.configure(
+            yscrollcommand=edit_scrollbar.set,
+        )
+        edit_history_list.pack(
+            side="left",
+            fill="both",
+            expand=True,
+        )
+        edit_scrollbar.pack(
+            side="right",
+            fill="y",
+        )
+
+        def resize_edit_history_columns(event=None) -> None:
+            available_width = max(
+                edit_history_list.winfo_width() - 2,
+                1,
+            )
+            widths = {
+                "product": 0.23,
+                "product_code": 0.23,
+                "changed": 0.30,
+                "date": 0.24,
+            }
+            for column, ratio in widths.items():
+                edit_history_list.column(
+                    column,
+                    width=max(1, int(available_width * ratio)),
+                )
+
+        edit_history_list.bind(
+            "<Configure>",
+            resize_edit_history_columns,
+        )
+
+        edit_history_sort_state = {
+            "column": "date",
+            "descending": True,
+        }
+
+        def edit_history_sort_key(row, column: str):
+            if column == "product":
+                return str(row[3] or "").lower()
+            if column == "product_code":
+                return str(row[4] or "").lower()
+            if column == "changed":
+                return str(row[5] or "").lower()
+            return str(row[6] or "")
+
+        def update_edit_history_headings() -> None:
+            arrows = {
+                "product": "",
+                "product_code": "",
+                "changed": "",
+                "date": "",
+            }
+            column = edit_history_sort_state["column"]
+            arrows[column] = (
+                " ▼"
+                if edit_history_sort_state["descending"]
+                else " ▲"
+            )
+
+            edit_history_list.heading(
+                "product",
+                text=f"Product{arrows['product']}",
+            )
+            edit_history_list.heading(
+                "product_code",
+                text=f"Product Code{arrows['product_code']}",
+            )
+            edit_history_list.heading(
+                "changed",
+                text=f"Changed Fields{arrows['changed']}",
+            )
+            edit_history_list.heading(
+                "date",
+                text=f"Date / Time{arrows['date']}",
+            )
+
+        def sort_edit_history(column: str) -> None:
+            if edit_history_sort_state["column"] == column:
+                edit_history_sort_state["descending"] = (
+                    not edit_history_sort_state["descending"]
+                )
+            else:
+                edit_history_sort_state["column"] = column
+                edit_history_sort_state["descending"] = False
+
+            refresh_edit_history()
+
+        add_delete_history_frame = ttk.LabelFrame(
+            products_content,
+            text="Add / Delete History",
+            padding=10,
+        )
+        add_delete_history_frame.pack(
+            fill="x",
+            pady=(10, 0),
+        )
+
+        add_delete_table_frame = ttk.Frame(
+            add_delete_history_frame,
+            height=145,
+        )
+        add_delete_table_frame.pack(
+            fill="x",
+        )
+        add_delete_table_frame.pack_propagate(False)
+
+        add_delete_history_list = ttk.Treeview(
+            add_delete_table_frame,
+            columns=(
+                "action",
+                "product",
+                "product_code",
+                "date",
+            ),
+            show="headings",
+            height=5,
+            style="Products.Treeview",
+        )
+
+        for column, heading in (
+            ("action", "Action"),
+            ("product", "Product"),
+            ("product_code", "Product Code"),
+            ("date", "Date / Time"),
+        ):
+            add_delete_history_list.heading(
+                column,
+                text=heading,
+                command=lambda c=column: sort_add_delete_history(c),
+            )
+            add_delete_history_list.column(
+                column,
+                width=1,
+                anchor="center",
+                stretch=True,
+            )
+
+        add_delete_scrollbar = ttk.Scrollbar(
+            add_delete_table_frame,
+            orient="vertical",
+            command=add_delete_history_list.yview,
+        )
+        add_delete_history_list.configure(
+            yscrollcommand=add_delete_scrollbar.set,
+        )
+        add_delete_history_list.pack(
+            side="left",
+            fill="both",
+            expand=True,
+        )
+        add_delete_scrollbar.pack(
+            side="right",
+            fill="y",
+        )
+
+        def resize_add_delete_history_columns(event=None) -> None:
+            available_width = max(
+                add_delete_history_list.winfo_width() - 2,
+                1,
+            )
+            widths = {
+                "action": 0.18,
+                "product": 0.30,
+                "product_code": 0.27,
+                "date": 0.25,
+            }
+            for column, ratio in widths.items():
+                add_delete_history_list.column(
+                    column,
+                    width=max(1, int(available_width * ratio)),
+                )
+
+        add_delete_history_list.bind(
+            "<Configure>",
+            resize_add_delete_history_columns,
+        )
+
+        def format_created_at(value: str) -> str:
+            try:
+                parsed = datetime.fromisoformat(value)
+                return parsed.strftime(
+                    "%Y-%m-%d        %H:%M:%S",
+                )
+            except ValueError:
+                return value.replace(
+                    "T",
+                    "        ",
+                    1,
+                )
+
+        def clear_edit_history() -> None:
+            for item in edit_history_list.get_children():
+                edit_history_list.delete(item)
+
+        def refresh_edit_history() -> None:
+            clear_edit_history()
+
+            product_id = selected_product_id["value"]
+            if product_id is None:
+                return
+
+            history = list(
+                self.context.product_service.get_edit_history(
+                    product_id,
+                )
+            )
+            history.sort(
+                key=lambda row: edit_history_sort_key(
+                    row,
+                    edit_history_sort_state["column"],
+                ),
+                reverse=edit_history_sort_state["descending"],
+            )
+
+            if not history:
+                edit_history_list.insert(
+                    "",
+                    "end",
+                    values=(
+                        "No edit done",
+                        "",
+                        "No edit history found for this product.",
+                        "",
+                    ),
+                )
+                update_edit_history_headings()
+                return
+
+            for row in history:
+                edit_history_list.insert(
+                    "",
+                    "end",
+                    values=(
+                        row[3],
+                        row[4],
+                        row[5] or "",
+                        format_created_at(row[6]),
+                    ),
+                )
+
+            update_edit_history_headings()
+
+        add_delete_sort_state = {
+            "column": "date",
+            "descending": True,
+        }
+
+        def add_delete_sort_key(row, column: str):
+            if isinstance(row, dict):
+                values = (
+                    row.get("action", ""),
+                    row.get("product_name", ""),
+                    row.get("product_code", ""),
+                    row.get("created_at", ""),
+                )
+            else:
+                values = (
+                    row[2],
+                    row[3],
+                    row[4],
+                    row[6],
+                )
+
+            index = {
+                "action": 0,
+                "product": 1,
+                "product_code": 2,
+                "date": 3,
+            }[column]
+            return str(values[index] or "").lower()
+
+        def update_add_delete_headings() -> None:
+            arrows = {
+                "action": "",
+                "product": "",
+                "product_code": "",
+                "date": "",
+            }
+            column = add_delete_sort_state["column"]
+            arrows[column] = (
+                " ▼"
+                if add_delete_sort_state["descending"]
+                else " ▲"
+            )
+
+            add_delete_history_list.heading(
+                "action",
+                text=f"Action{arrows['action']}",
+            )
+            add_delete_history_list.heading(
+                "product",
+                text=f"Product{arrows['product']}",
+            )
+            add_delete_history_list.heading(
+                "product_code",
+                text=f"Product Code{arrows['product_code']}",
+            )
+            add_delete_history_list.heading(
+                "date",
+                text=f"Date / Time{arrows['date']}",
+            )
+
+        def sort_add_delete_history(column: str) -> None:
+            if add_delete_sort_state["column"] == column:
+                add_delete_sort_state["descending"] = (
+                    not add_delete_sort_state["descending"]
+                )
+            else:
+                add_delete_sort_state["column"] = column
+                add_delete_sort_state["descending"] = False
+
+            refresh_add_delete_history()
+
+        def refresh_add_delete_history() -> None:
+            for item in add_delete_history_list.get_children():
+                add_delete_history_list.delete(item)
+
+            service = self.context.product_service
+
+            try:
+                history = service.get_add_delete_history()
+            except AttributeError:
+                history = service.repository.get_product_history()
+
+            def history_created_at(row):
+                if isinstance(row, dict):
+                    return row.get("created_at", "")
+                return row[6]
+
+            history = sorted(
+                history,
+                key=lambda row: add_delete_sort_key(
+                    row,
+                    add_delete_sort_state["column"],
+                ),
+                reverse=add_delete_sort_state["descending"],
+            )
+
+            for row in history:
+                if isinstance(row, dict):
+                    action = row.get("action", "")
+                    product_name = row.get("product_name", "")
+                    product_code = row.get("product_code", "")
+                    created_at = row.get("created_at", "")
+                else:
+                    action = row[2]
+                    product_name = row[3]
+                    product_code = row[4]
+                    created_at = row[6]
+
+                add_delete_history_list.insert(
+                    "",
+                    "end",
+                    values=(
+                        action,
+                        product_name,
+                        product_code,
+                        format_created_at(created_at),
+                    ),
+                )
+
+            update_add_delete_headings()
+
+        def product_sort_key(product, column: str):
+            if column == "id":
+                return product.id or 0
+            if column == "name":
+                return product.name.lower()
+            if column == "product_code":
+                return product.sku.lower()
+            if column == "quantity":
+                return product.quantity
+            return product.price
+
+        def update_product_headings() -> None:
+            arrows = {
+                "id": "",
+                "name": "",
+                "product_code": "",
+                "quantity": "",
+                "price": "",
+            }
+
+            column = sort_state["column"]
+            arrows[column] = (
+                " ▼"
+                if sort_state["descending"]
+                else " ▲"
+            )
+
+            product_list.heading(
+                "id",
+                text=f"ID{arrows['id']}",
+            )
+            product_list.heading(
+                "name",
+                text=f"Name{arrows['name']}",
+            )
+            product_list.heading(
+                "product_code",
+                text=f"Product Code{arrows['product_code']}",
+            )
+            product_list.heading(
+                "quantity",
+                text=f"Quantity{arrows['quantity']}",
+            )
+            product_list.heading(
+                "price",
+                text=f"Per Unit Price{arrows['price']}",
+            )
+
+        def render_products() -> None:
             for item in product_list.get_children():
                 product_list.delete(item)
 
-            products = self.context.product_service.get_products()
+            search_text = search_var.get().strip().lower()
 
-            for product in products:
+            if (
+                search_placeholder_active["value"]
+                or search_text == search_placeholder.lower()
+            ):
+                search_text = ""
+
+            filtered = []
+
+            for product in products_cache:
+                if (
+                    not search_text
+                    or search_text in str(product.id or "").lower()
+                    or search_text in product.name.lower()
+                    or search_text in product.sku.lower()
+                ):
+                    filtered.append(product)
+
+            filtered.sort(
+                key=lambda product: product_sort_key(
+                    product,
+                    sort_state["column"],
+                ),
+                reverse=sort_state["descending"],
+            )
+
+            for product in filtered:
                 product_list.insert(
                     "",
                     "end",
                     values=(
                         product.id,
                         product.name,
-                        product.description or "",
                         product.sku,
-                        f"{product.price:.2f}",
                         product.quantity,
+                        f"₹ {product.price:,.2f}",
                     ),
                 )
 
-        def clear_form() -> None:
-            name_entry.delete(0, tk.END)
-            description_entry.delete(0, tk.END)
-            sku_entry.delete(0, tk.END)
-            price_entry.delete(0, tk.END)
-            quantity_entry.delete(0, tk.END)
+            update_product_headings()
+
+        def sort_products(column: str) -> None:
+            if sort_state["column"] == column:
+                sort_state["descending"] = (
+                    not sort_state["descending"]
+                )
+            else:
+                sort_state["column"] = column
+                sort_state["descending"] = False
+
+            render_products()
+
+        def load_products() -> None:
+            nonlocal products_cache
+
+            products_cache = self.context.product_service.get_products()
+            render_products()
+            refresh_add_delete_history()
+            refresh_edit_history()
+
+        def get_selected_product():
+            selected = product_list.selection()
+            if not selected:
+                return None
+
+            values = product_list.item(
+                selected[0],
+                "values",
+            )
+            if not values:
+                return None
+
+            product_id = int(values[0])
+
+            return next(
+                (
+                    product
+                    for product in products_cache
+                    if product.id == product_id
+                ),
+                None,
+            )
+
+        def validate_description(value: str) -> bool:
+            return len(value) <= description_limit
+
+        def valid_product_code(value: str) -> bool:
+            return bool(value) and (
+                "A" <= value[0] <= "Z"
+                or "a" <= value[0] <= "z"
+            )
+
+        def product_code_warning(parent) -> None:
+            messagebox.showwarning(
+                "Invalid Product Code",
+                (
+                    "Product Code must start with an alphabetic letter "
+                    "(A-Z or a-z).\n\n"
+                    "Examples: P001, A123, product-01"
+                ),
+                parent=parent,
+            )
 
         def add_product() -> None:
-            try:
-                product = Product(
-                    id=None,
-                    name=name_entry.get(),
-                    description=description_entry.get() or None,
-                    sku=sku_entry.get(),
-                    price=float(price_entry.get()),
-                    quantity=int(quantity_entry.get()),
-                    created_at=datetime.now().isoformat(
-                        timespec="seconds"
-                    ),
+            dialog = tk.Toplevel(self.root)
+            dialog.title("Add Product")
+            dialog.geometry("500x430")
+            dialog.resizable(False, False)
+            dialog.transient(self.root)
+            dialog.grab_set()
+
+            ttk.Label(
+                dialog,
+                text="Add Product",
+                font=("TkDefaultFont", 18, "bold"),
+            ).pack(
+                anchor="w",
+                padx=20,
+                pady=(20, 15),
+            )
+
+            form = ttk.LabelFrame(
+                dialog,
+                text="Product Information",
+                padding=15,
+            )
+            form.pack(
+                fill="x",
+                padx=20,
+            )
+
+            entries = {}
+            fields = (
+                ("Name", 0),
+                ("Description", 1),
+                ("Product Code", 2),
+                ("Per Unit Price", 3),
+                ("Quantity", 4),
+            )
+
+            for label, row in fields:
+                ttk.Label(
+                    form,
+                    text=label,
+                    font=("TkDefaultFont", 10, "bold"),
+                ).grid(
+                    row=row,
+                    column=0,
+                    sticky="w",
+                    padx=5,
+                    pady=6,
                 )
 
-                self.context.product_service.add_product(product)
-                clear_form()
+                entry = ttk.Entry(
+                    form,
+                    width=38,
+                )
+                entry.grid(
+                    row=row,
+                    column=1,
+                    sticky="ew",
+                    padx=10,
+                    pady=6,
+                )
+                entries[label] = entry
+
+            description_validate = dialog.register(
+                validate_description,
+            )
+            entries["Description"].configure(
+                validate="key",
+                validatecommand=(
+                    description_validate,
+                    "%P",
+                ),
+            )
+
+            quantity_validate = dialog.register(
+                lambda value: value == "" or value.isdigit(),
+            )
+            entries["Quantity"].configure(
+                validate="key",
+                validatecommand=(
+                    quantity_validate,
+                    "%P",
+                ),
+            )
+
+            def submit() -> None:
+                name = entries["Name"].get().strip()
+                description = entries["Description"].get().strip()
+                product_code = entries["Product Code"].get().strip()
+                price_text = entries["Per Unit Price"].get().strip()
+                quantity_text = entries["Quantity"].get().strip()
+
+                if not name:
+                    messagebox.showwarning(
+                        "Invalid Product",
+                        "Product name is required.",
+                        parent=dialog,
+                    )
+                    return
+
+                if not valid_product_code(product_code):
+                    product_code_warning(dialog)
+                    return
+
+                try:
+                    price = float(price_text)
+                except ValueError:
+                    messagebox.showwarning(
+                        "Invalid Price",
+                        (
+                            "Per Unit Price must contain only a number "
+                            "greater than or equal to zero. "
+                            "Decimal values are allowed."
+                        ),
+                        parent=dialog,
+                    )
+                    return
+
+                if not math.isfinite(price):
+                    messagebox.showwarning(
+                        "Invalid Price",
+                        "Per Unit Price must be a valid number.",
+                        parent=dialog,
+                    )
+                    return
+
+                if price < 0:
+                    messagebox.showwarning(
+                        "Invalid Price",
+                        "Per Unit Price cannot be negative.",
+                        parent=dialog,
+                    )
+                    return
+
+                if not quantity_text or int(quantity_text) < 1:
+                    messagebox.showwarning(
+                        "Invalid Quantity",
+                        "Quantity must be a whole number with minimum 1.",
+                        parent=dialog,
+                    )
+                    return
+
+                try:
+                    product = Product(
+                        id=None,
+                        name=name,
+                        description=description or None,
+                        sku=product_code,
+                        price=price,
+                        quantity=int(quantity_text),
+                        created_at=datetime.now().isoformat(
+                            timespec="seconds",
+                        ),
+                    )
+
+                    confirmed = messagebox.askyesno(
+                        "Confirm Add Product",
+                        f"Are you sure you want to add '{name}'?",
+                        parent=dialog,
+                    )
+                    if not confirmed:
+                        return
+
+                    self.context.product_service.add_product(product)
+                    dialog.destroy()
+                    load_products()
+
+                    messagebox.showinfo(
+                        "Success",
+                        "Product added successfully.",
+                    )
+                except sqlite3.IntegrityError as exc:
+                    if "UNIQUE constraint failed: products.sku" in str(exc):
+                        messagebox.showwarning(
+                            "Product Code Already in Use",
+                            (
+                                f"Product Code '{product_code}' is already "
+                                "in use.\n\nPlease change the Product Code "
+                                "and try again."
+                            ),
+                            parent=dialog,
+                        )
+                    else:
+                        messagebox.showwarning(
+                            "Unable to Add Product",
+                            str(exc),
+                            parent=dialog,
+                        )
+                except (ValueError, TypeError) as exc:
+                    messagebox.showwarning(
+                        "Unable to Add Product",
+                        str(exc),
+                        parent=dialog,
+                    )
+
+            ttk.Button(
+                dialog,
+                text="Confirm",
+                command=submit,
+            ).pack(
+                fill="x",
+                padx=20,
+                pady=20,
+            )
+
+            entries["Name"].focus_set()
+
+        def edit_product(
+            product=None,
+            parent=None,
+            on_updated=None,
+        ) -> None:
+            if product is not None and product.id is not None:
+                latest_product = next(
+                    (
+                        cached_product
+                        for cached_product in products_cache
+                        if cached_product.id == product.id
+                    ),
+                    None,
+                )
+                if latest_product is not None:
+                    product = latest_product
+
+            if product is None:
+                product = get_selected_product()
+
+            if product is None:
+                messagebox.showwarning(
+                    "Edit Product",
+                    "Please select a product first.",
+                    parent=parent,
+                )
+                return
+
+            dialog = tk.Toplevel(self.root)
+            dialog.title("Edit Product")
+            dialog.geometry("500x410")
+            dialog.resizable(False, False)
+            dialog.transient(self.root)
+            dialog.grab_set()
+
+            ttk.Label(
+                dialog,
+                text="Edit Product",
+                font=("TkDefaultFont", 18, "bold"),
+            ).pack(
+                anchor="w",
+                padx=20,
+                pady=(20, 15),
+            )
+
+            form = ttk.LabelFrame(
+                dialog,
+                text="Product Information",
+                padding=15,
+            )
+            form.pack(
+                fill="x",
+                padx=20,
+            )
+
+            entries = {}
+            values = (
+                ("Name", product.name),
+                ("Description", product.description or ""),
+                ("Product Code", product.sku),
+                ("Per Unit Price", str(product.price)),
+            )
+
+            for row, (label, value) in enumerate(values):
+                ttk.Label(
+                    form,
+                    text=label,
+                    font=("TkDefaultFont", 10, "bold"),
+                ).grid(
+                    row=row,
+                    column=0,
+                    sticky="w",
+                    padx=5,
+                    pady=6,
+                )
+
+                entry = ttk.Entry(
+                    form,
+                    width=38,
+                )
+                entry.insert(0, value)
+                entry.grid(
+                    row=row,
+                    column=1,
+                    sticky="ew",
+                    padx=10,
+                    pady=6,
+                )
+                entries[label] = entry
+
+            description_validate = dialog.register(
+                validate_description,
+            )
+            entries["Description"].configure(
+                validate="key",
+                validatecommand=(
+                    description_validate,
+                    "%P",
+                ),
+            )
+
+            ttk.Label(
+                form,
+                text=f"Quantity: {product.quantity}",
+                font=("TkDefaultFont", 10, "bold"),
+            ).grid(
+                row=4,
+                column=0,
+                columnspan=2,
+                sticky="w",
+                padx=5,
+                pady=(10, 2),
+            )
+
+            ttk.Label(
+                form,
+                text="Quantity can only be changed from Inventory.",
+            ).grid(
+                row=5,
+                column=0,
+                columnspan=2,
+                sticky="w",
+                padx=5,
+                pady=(0, 5),
+            )
+
+            def submit() -> None:
+                name = entries["Name"].get().strip()
+                description = entries["Description"].get().strip()
+                product_code = entries["Product Code"].get().strip()
+                price_text = entries["Per Unit Price"].get().strip()
+
+                if not name:
+                    messagebox.showwarning(
+                        "Invalid Product",
+                        "Product name is required.",
+                        parent=dialog,
+                    )
+                    return
+
+                if not valid_product_code(product_code):
+                    product_code_warning(dialog)
+                    return
+
+                try:
+                    price = float(price_text)
+                except ValueError:
+                    messagebox.showwarning(
+                        "Invalid Price",
+                        (
+                            "Per Unit Price must contain only a number "
+                            "greater than or equal to zero. "
+                            "Decimal values are allowed."
+                        ),
+                        parent=dialog,
+                    )
+                    return
+
+                if not math.isfinite(price):
+                    messagebox.showwarning(
+                        "Invalid Price",
+                        "Per Unit Price must be a valid number.",
+                        parent=dialog,
+                    )
+                    return
+
+                if price < 0:
+                    messagebox.showwarning(
+                        "Invalid Price",
+                        "Per Unit Price cannot be negative.",
+                        parent=dialog,
+                    )
+                    return
+
+                changed_fields = []
+                if name != product.name:
+                    changed_fields.append("Name")
+                if description != (product.description or ""):
+                    changed_fields.append("Description")
+                if product_code != product.sku:
+                    changed_fields.append("Product Code")
+                if price != product.price:
+                    changed_fields.append("Per Unit Price")
+
+                if not changed_fields:
+                    messagebox.showinfo(
+                        "No Changes",
+                        "No product changes were made.",
+                        parent=dialog,
+                    )
+                    return
+
+                if not messagebox.askyesno(
+                    "Confirm Edit",
+                    "Are you sure you want to save these changes?",
+                    parent=dialog,
+                ):
+                    return
+
+                try:
+                    updated = Product(
+                        id=product.id,
+                        name=name,
+                        description=description or None,
+                        sku=product_code,
+                        price=price,
+                        quantity=product.quantity,
+                        created_at=product.created_at,
+                    )
+
+                    self.context.product_service.update_product(updated)
+                    load_products()
+
+                    if on_updated is not None:
+                        on_updated(updated)
+
+                    dialog.destroy()
+
+                    messagebox.showinfo(
+                        "Success",
+                        "Product updated successfully.",
+                    )
+                except sqlite3.IntegrityError as exc:
+                    if "UNIQUE constraint failed: products.sku" in str(exc):
+                        messagebox.showwarning(
+                            "Product Code Already in Use",
+                            (
+                                f"Product Code '{product_code}' is already "
+                                "in use.\n\nPlease change the Product Code "
+                                "and try again."
+                            ),
+                            parent=dialog,
+                        )
+                    else:
+                        messagebox.showwarning(
+                            "Unable to Edit Product",
+                            str(exc),
+                            parent=dialog,
+                        )
+                except (ValueError, TypeError) as exc:
+                    messagebox.showwarning(
+                        "Unable to Edit Product",
+                        str(exc),
+                        parent=dialog,
+                    )
+
+            ttk.Button(
+                dialog,
+                text="Confirm",
+                command=submit,
+            ).pack(
+                fill="x",
+                padx=20,
+                pady=20,
+            )
+
+            entries["Name"].focus_set()
+
+        def delete_product(product=None, parent=None) -> None:
+            if product is None:
+                product = get_selected_product()
+
+            if product is None:
+                messagebox.showwarning(
+                    "Delete Product",
+                    "Please select a product first.",
+                    parent=parent,
+                )
+                return
+
+            confirmed = messagebox.askyesno(
+                "Confirm Delete",
+                (
+                    f"Are you sure you want to delete "
+                    f"'{product.name}'?"
+                ),
+                parent=parent,
+            )
+
+            if not confirmed:
+                return
+
+            try:
+                self.context.product_service.delete_product(
+                    product.id,
+                )
+
+                if parent is not None:
+                    parent.destroy()
+
+                selected_product_id["value"] = None
                 load_products()
 
                 messagebox.showinfo(
                     "Success",
-                    "Product added successfully.",
+                    "Product deleted successfully.",
                 )
-
-            except (ValueError, TypeError) as exc:
-                messagebox.showerror(
-                    "Invalid Input",
+            except ValueError as exc:
+                messagebox.showwarning(
+                    "Unable to Delete Product",
                     str(exc),
+                    parent=parent,
                 )
 
-        def delete_product() -> None:
+        def show_product_popup(event=None) -> None:
+            row_id = (
+                product_list.identify_row(event.y)
+                if event
+                else ""
+            )
+
+            if not row_id:
+                return
+
+            product_list.selection_set(row_id)
+            product_list.focus(row_id)
+
+            values = product_list.item(
+                row_id,
+                "values",
+            )
+            if not values:
+                return
+
+            product = next(
+                (
+                    item
+                    for item in products_cache
+                    if item.id == int(values[0])
+                ),
+                None,
+            )
+            if product is None:
+                return
+
+            popup = tk.Toplevel(self.root)
+            popup.title("Product Details")
+            popup.geometry("540x470")
+            popup.minsize(540, 470)
+            popup.resizable(False, False)
+            popup.transient(self.root)
+            popup.grab_set()
+
+            ttk.Label(
+                popup,
+                text="Product Details",
+                font=("TkDefaultFont", 18, "bold"),
+            ).pack(
+                anchor="w",
+                padx=20,
+                pady=(20, 15),
+            )
+
+            details_frame = ttk.LabelFrame(
+                popup,
+                text="Product Information",
+                padding=15,
+            )
+            details_frame.pack(
+                fill="x",
+                padx=20,
+                pady=(0, 15),
+            )
+
+            details = (
+                ("Product ID", product.id),
+                ("Name", product.name),
+                ("Description", product.description or ""),
+                ("Product Code", product.sku),
+                ("Per Unit Price", f"₹ {product.price:,.2f}"),
+                ("Quantity", product.quantity),
+            )
+
+            detail_value_labels = {}
+
+            for row, (label, value) in enumerate(details):
+                ttk.Label(
+                    details_frame,
+                    text=f"{label}:",
+                    font=("TkDefaultFont", 10, "bold"),
+                ).grid(
+                    row=row,
+                    column=0,
+                    sticky="w",
+                    padx=5,
+                    pady=4,
+                )
+
+                value_label = ttk.Label(
+                    details_frame,
+                    text=str(value),
+                )
+                value_label.grid(
+                    row=row,
+                    column=1,
+                    sticky="w",
+                    padx=15,
+                    pady=4,
+                )
+                detail_value_labels[label] = value_label
+
+            def refresh_product_popup(updated):
+                detail_value_labels["Name"].config(
+                    text=updated.name,
+                )
+                detail_value_labels["Description"].config(
+                    text=updated.description or "",
+                )
+                detail_value_labels["Product Code"].config(
+                    text=updated.sku,
+                )
+                detail_value_labels["Per Unit Price"].config(
+                    text=f"₹ {updated.price:,.2f}",
+                )
+                detail_value_labels["Quantity"].config(
+                    text=str(updated.quantity),
+                )
+
+            operations = ttk.LabelFrame(
+                popup,
+                text="Product Operations",
+                padding=15,
+            )
+            operations.pack(
+                fill="x",
+                padx=20,
+                pady=(0, 15),
+            )
+
+            ttk.Button(
+                operations,
+                text="Edit",
+                command=lambda: edit_product(
+                    product,
+                    popup,
+                    refresh_product_popup,
+                ),
+            ).pack(
+                fill="x",
+                pady=4,
+            )
+
+            ttk.Button(
+                operations,
+                text="Delete",
+                command=lambda: delete_product(
+                    product,
+                    popup,
+                ),
+            ).pack(
+                fill="x",
+                pady=4,
+            )
+
+        def select_product(event=None) -> None:
             selected = product_list.selection()
 
             if not selected:
-                messagebox.showwarning(
-                    "Delete Product",
-                    "Select a product first.",
-                )
+                selected_product_id["value"] = None
+                clear_edit_history()
                 return
 
             values = product_list.item(
@@ -383,18 +1636,14 @@ class GUIApplication:
                 "values",
             )
 
-            product_id = int(values[0])
+            if not values:
+                return
 
-            self.context.product_service.delete_product(product_id)
-            load_products()
-
-            messagebox.showinfo(
-                "Success",
-                "Product deleted successfully.",
-            )
+            selected_product_id["value"] = int(values[0])
+            refresh_edit_history()
 
         ttk.Button(
-            button_frame,
+            operation_frame,
             text="Add Product",
             command=add_product,
         ).pack(
@@ -403,15 +1652,41 @@ class GUIApplication:
         )
 
         ttk.Button(
-            button_frame,
-            text="Delete Selected",
+            operation_frame,
+            text="Edit Product",
+            command=edit_product,
+        ).pack(
+            side="left",
+            padx=5,
+        )
+
+        ttk.Button(
+            operation_frame,
+            text="Delete Product",
             command=delete_product,
         ).pack(
             side="left",
             padx=5,
         )
 
+        search_var.trace_add(
+            "write",
+            lambda *_: render_products(),
+        )
+        product_list.bind(
+            "<<TreeviewSelect>>",
+            select_product,
+        )
+        product_list.bind(
+            "<Double-1>",
+            show_product_popup,
+        )
+
         load_products()
+        self.root.after_idle(
+            self._refresh_initial_layout,
+        )
+
 
     def _show_inventory(self) -> None:
         selected_product_id = {"value": None}
@@ -1131,6 +2406,7 @@ class GUIApplication:
 
         def run_stock_operation(
             operation: str,
+            on_completed=None,
         ) -> None:
             if selected_product_id["value"] is None:
                 messagebox.showwarning(
@@ -1174,7 +2450,7 @@ class GUIApplication:
             if operation == "Adjust Stock":
                 field_label = "New Stock Quantity"
                 help_text = (
-                    "Enter the new total stock quantity."
+                    "Enter the new total stock quantity. Minimum is 0."
                 )
             else:
                 field_label = "Quantity"
@@ -1237,13 +2513,28 @@ class GUIApplication:
 
                 quantity = int(raw_quantity)
 
+                current_product = next(
+                    (
+                        product
+                        for product in products_cache
+                        if product.id == product_id
+                    ),
+                    None,
+                )
+                current_quantity = (
+                    current_product.quantity
+                    if current_product is not None
+                    else 0
+                )
+
                 if operation == "Adjust Stock":
-                    if quantity < 0:
+                    if quantity == 0 and current_quantity <= 0:
                         messagebox.showwarning(
-                            "Invalid Quantity",
+                            "No Stock Left",
                             (
-                                "New stock quantity "
-                                "cannot be negative."
+                                "There is no stock left for this product. "
+                                "Please add stock before setting the stock "
+                                "quantity to 0."
                             ),
                             parent=dialog,
                         )
@@ -1255,6 +2546,50 @@ class GUIApplication:
                         "Quantity must be greater than zero.",
                         parent=dialog,
                     )
+                    return
+
+                if operation == "Stock Out":
+                    if current_quantity <= 0:
+                        messagebox.showwarning(
+                            "No Stock Left",
+                            (
+                                "There is no stock left for this product. "
+                                "Stock Out cannot be performed."
+                            ),
+                            parent=dialog,
+                        )
+                        return
+
+                    if quantity > current_quantity:
+                        messagebox.showwarning(
+                            "Insufficient Stock",
+                            (
+                                f"Available stock is {current_quantity}. "
+                                "Please enter a quantity within the "
+                                "available stock."
+                            ),
+                            parent=dialog,
+                        )
+                        return
+
+                    if quantity == current_quantity:
+                        messagebox.showwarning(
+                            "Stock Out Not Allowed",
+                            (
+                                "Stock Out must leave at least 1 unit. "
+                                "If you want to reduce the stock to 0, "
+                                "use Adjust Stock instead."
+                            ),
+                            parent=dialog,
+                        )
+                        return
+
+                confirmed = messagebox.askyesno(
+                    f"Confirm {operation}",
+                    f"Are you sure you want to perform {operation.lower()}?",
+                    parent=dialog,
+                )
+                if not confirmed:
                     return
 
                 try:
@@ -1311,6 +2646,12 @@ class GUIApplication:
                                 values[1],
                             )
 
+                            if on_completed is not None:
+                                on_completed(
+                                    product_id,
+                                    values,
+                                )
+
                             break
 
                     messagebox.showinfo(
@@ -1337,7 +2678,7 @@ class GUIApplication:
 
             ttk.Button(
                 button_frame,
-                text="Save",
+                text="Confirm",
                 command=submit,
             ).pack(
                 side="left",
@@ -1464,6 +2805,8 @@ class GUIApplication:
                 ("Total Stock Price", total_stock_price),
             ]
 
+            detail_value_labels = {}
+
             for row, (label, value) in enumerate(
                 details
             ):
@@ -1479,15 +2822,28 @@ class GUIApplication:
                     pady=4,
                 )
 
-                ttk.Label(
+                value_label = ttk.Label(
                     details_frame,
                     text=str(value),
-                ).grid(
+                )
+                value_label.grid(
                     row=row,
                     column=1,
                     sticky="w",
                     padx=15,
                     pady=4,
+                )
+                detail_value_labels[label] = value_label
+
+            def refresh_inventory_popup(product_id, values):
+                detail_value_labels["Quantity/unit"].config(
+                    text=values[3],
+                )
+                detail_value_labels["Per Unit Price"].config(
+                    text=values[4],
+                )
+                detail_value_labels["Total Stock Price"].config(
+                    text=values[5],
                 )
 
             popup_operation_frame = ttk.LabelFrame(
@@ -1504,7 +2860,10 @@ class GUIApplication:
             ttk.Button(
                 popup_operation_frame,
                 text="Stock In",
-                command=stock_in,
+                command=lambda: run_stock_operation(
+                    "Stock In",
+                    refresh_inventory_popup,
+                ),
             ).pack(
                 fill="x",
                 pady=4,
@@ -1513,7 +2872,10 @@ class GUIApplication:
             ttk.Button(
                 popup_operation_frame,
                 text="Stock Out",
-                command=stock_out,
+                command=lambda: run_stock_operation(
+                    "Stock Out",
+                    refresh_inventory_popup,
+                ),
             ).pack(
                 fill="x",
                 pady=4,
@@ -1522,7 +2884,10 @@ class GUIApplication:
             ttk.Button(
                 popup_operation_frame,
                 text="Adjust Stock",
-                command=adjust_stock,
+                command=lambda: run_stock_operation(
+                    "Adjust Stock",
+                    refresh_inventory_popup,
+                ),
             ).pack(
                 fill="x",
                 pady=4,
