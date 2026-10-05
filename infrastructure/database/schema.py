@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 
 INSERT OR IGNORE INTO schema_version (id, version)
-VALUES (1, '3');
+VALUES (1, '4');
 
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY,
@@ -75,7 +75,25 @@ CREATE TABLE IF NOT EXISTS taxes_charges (
     product_id INTEGER,
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL,
+    tax_code TEXT NOT NULL DEFAULT 'OTHER',
+    is_default INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+CREATE TABLE IF NOT EXISTS sale_tax_charge_snapshots (
+    id INTEGER PRIMARY KEY,
+    sale_id INTEGER NOT NULL,
+    tax_charge_id INTEGER,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    calculation TEXT NOT NULL,
+    value REAL NOT NULL,
+    scope TEXT NOT NULL,
+    product_id INTEGER,
+    amount REAL NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (sale_id) REFERENCES sales(id),
+    FOREIGN KEY (tax_charge_id) REFERENCES taxes_charges(id)
 );
 
 CREATE TABLE IF NOT EXISTS customers (
@@ -98,6 +116,14 @@ CREATE TABLE IF NOT EXISTS suppliers (
     email TEXT,
     address TEXT,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS supplier_products (
+    supplier_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    PRIMARY KEY (supplier_id, product_id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS sales (

@@ -37,3 +37,10 @@ def validate_tax_charge_scope(
 def validate_tax_charge_created_at(created_at: str) -> None:
     if not created_at.strip():
         raise ValueError("Tax or charge creation timestamp cannot be empty.")
+
+def validate_tax_charge_tax_code(tax_code: str, tax_charge_type: str) -> None:
+    allowed = {"GST", "CGST", "SGST", "IGST", "OTHER", "DELIVERY", "PACKAGING", "HANDLING"}
+    if tax_code not in allowed:
+        raise ValueError("Tax or charge code is not supported.")
+    if tax_charge_type == "Tax" and tax_code in {"DELIVERY", "PACKAGING", "HANDLING"}:
+        raise ValueError("Delivery, packaging, and handling codes must be charges.")

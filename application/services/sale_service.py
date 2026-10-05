@@ -46,6 +46,31 @@ class SaleService:
 
             self.sale_repository.add(sale)
 
+            # Snapshot the exact tax/charge configuration used for this sale.
+            # Later configuration edits therefore cannot rewrite history.
+            for tax_charge in tax_charges:
+                if not tax_charge.is_active:
+                    continue
+                if tax_charge.scope == "Overall":
+                    amount = self.sale_calculation_service.tax_charge_calculator.calculate(
+                        tax_charge, calculation.subtotal
+                    )
+                    if amount:
+                        self.tax_charge_repository.snapshot_for_sale(
+                            sale.id, tax_charge, amount, sale.created_at
+                        )
+                else:
+                    for line in sale.lines:
+                        if tax_charge.product_id != line.product_id:
+                            continue
+                        amount = self.sale_calculation_service.tax_charge_calculator.calculate(
+                            tax_charge, line.subtotal, line.product_id
+                        )
+                        if amount:
+                            self.tax_charge_repository.snapshot_for_sale(
+                                sale.id, tax_charge, amount, sale.created_at
+                            )
+
             for line in sale.lines:
                 sale_item = SaleItem(
                     id=None,

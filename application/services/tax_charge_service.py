@@ -17,6 +17,9 @@ class TaxChargeService:
     def get_tax_charges(self) -> list[TaxCharge]:
         return self.repository.get_all()
 
+    def get_default_tax_charges(self) -> list[TaxCharge]:
+        return self.repository.get_defaults()
+
     def update_tax_charge(self, tax_charge: TaxCharge) -> None:
         self.repository.update(tax_charge)
 

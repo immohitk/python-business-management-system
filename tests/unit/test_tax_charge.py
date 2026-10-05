@@ -96,3 +96,14 @@ def test_overall_scope_cannot_have_product_id():
 def test_empty_created_at_is_rejected():
     with pytest.raises(ValueError, match="creation timestamp cannot be empty"):
         make_tax_charge(created_at="   ")
+
+
+def test_tax_code_supports_indirect_tax_codes():
+    for code in ("GST", "CGST", "SGST", "IGST"):
+        tax_charge = make_tax_charge(tax_code=code)
+        assert tax_charge.tax_code == code
+
+
+def test_charge_codes_are_reserved_for_charges():
+    with pytest.raises(ValueError, match="must be charges"):
+        make_tax_charge(tax_code="DELIVERY")

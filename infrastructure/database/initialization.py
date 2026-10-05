@@ -11,8 +11,10 @@ def initialize_database(database_path: Path | None = None) -> None:
         connection.executescript(get_schema_sql())
         _migrate_product_columns(connection)
         _migrate_customer_columns(connection)
+        _migrate_tax_charge_columns(connection)
+        _migrate_supplier_product_table(connection)
         _seed_units(connection)
-        connection.execute("UPDATE schema_version SET version='3' WHERE id=1")
+        connection.execute("UPDATE schema_version SET version='4' WHERE id=1")
         connection.commit()
     finally:
         connection.close()
@@ -86,3 +88,46 @@ def _migrate_customer_columns(connection) -> None:
             connection.execute(
                 f"ALTER TABLE customers ADD COLUMN {column} {definition}"
             )
+
+
+def _migrate_tax_charge_columns(connection) -> None:
+    """Add v2 tax/charge metadata and snapshot storage additively."""
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(taxes_charges)")}
+    additions = {
+        "tax_code": "TEXT NOT NULL DEFAULT 'OTHER'",
+        "is_default": "INTEGER NOT NULL DEFAULT 0",
+    }
+    for column, definition in additions.items():
+        if column not in columns:
+            connection.execute(f"ALTER TABLE taxes_charges ADD COLUMN {column} {definition}")
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS sale_tax_charge_snapshots (
+            id INTEGER PRIMARY KEY,
+            sale_id INTEGER NOT NULL,
+            tax_charge_id INTEGER,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            calculation TEXT NOT NULL,
+            value REAL NOT NULL,
+            scope TEXT NOT NULL,
+            product_id INTEGER,
+            amount REAL NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (sale_id) REFERENCES sales(id),
+            FOREIGN KEY (tax_charge_id) REFERENCES taxes_charges(id)
+        )
+    """)
+
+
+def _migrate_supplier_product_table(connection) -> None:
+    """Create the v2 supplier-product many-to-many relationship additively."""
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS supplier_products (
+            supplier_id INTEGER NOT NULL,
+            product_id INTEGER NOT NULL,
+            PRIMARY KEY (supplier_id, product_id),
+            FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+        )
+    """)
