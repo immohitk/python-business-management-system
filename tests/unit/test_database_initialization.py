@@ -40,7 +40,7 @@ def test_schema_version_contains_initial_version():
             "SELECT id, version FROM schema_version"
         ).fetchone()
 
-        assert result == (1, "2")
+        assert result == (1, "3")
     finally:
         connection.close()
 
@@ -56,7 +56,7 @@ def test_initialize_database_is_idempotent():
             "SELECT id, version FROM schema_version"
         ).fetchall()
 
-        assert rows == [(1, "2")]
+        assert rows == [(1, "3")]
     finally:
         connection.close()
 
@@ -76,6 +76,6 @@ def test_initialize_database_supports_custom_database_path(tmp_path):
             "SELECT id, version FROM schema_version"
         ).fetchone()
 
-        assert result == (1, "2")
+        assert result == (1, "3")
     finally:
         connection.close()

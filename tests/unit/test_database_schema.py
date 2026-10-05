@@ -392,6 +392,7 @@ def test_database_contains_all_core_business_tables(tmp_path):
             ("stock_movements",),
             ("suppliers",),
             ("taxes_charges",),
+            ("units",),
         ]
     finally:
         connection.close()

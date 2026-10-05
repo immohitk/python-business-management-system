@@ -5,12 +5,20 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 
 INSERT OR IGNORE INTO schema_version (id, version)
-VALUES (1, '2');
+VALUES (1, '3');
 
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS units (
+    id INTEGER PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    dimension TEXT NOT NULL,
+    to_base_factor REAL NOT NULL CHECK (to_base_factor > 0)
 );
 
 CREATE TABLE IF NOT EXISTS products (

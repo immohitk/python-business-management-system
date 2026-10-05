@@ -10,7 +10,8 @@ def initialize_database(database_path: Path | None = None) -> None:
     try:
         connection.executescript(get_schema_sql())
         _migrate_product_columns(connection)
-        connection.execute("UPDATE schema_version SET version='2' WHERE id=1")
+        _seed_units(connection)
+        connection.execute("UPDATE schema_version SET version='3' WHERE id=1")
         connection.commit()
     finally:
         connection.close()
@@ -43,3 +44,27 @@ def _migrate_product_columns(connection) -> None:
             connection.execute(
                 f"ALTER TABLE products ADD COLUMN {column} {definition}"
             )
+
+
+def _seed_units(connection) -> None:
+    """Seed the standard v2 unit catalog without overwriting user changes."""
+    units = [
+        ("PCS", "Piece", "COUNT", 1.0),
+        ("DOZEN", "Dozen", "COUNT", 12.0),
+        ("GRAM", "Gram", "MASS", 1.0),
+        ("KG", "Kilogram", "MASS", 1000.0),
+        ("ML", "Millilitre", "VOLUME", 1.0),
+        ("LITRE", "Litre", "VOLUME", 1000.0),
+        # Package units intentionally have separate dimensions. Their actual
+        # pack size is product-specific and must not be guessed globally.
+        ("CARTON", "Carton", "CARTON", 1.0),
+        ("BOX", "Box", "BOX", 1.0),
+        ("PACK", "Pack", "PACK", 1.0),
+    ]
+    connection.executemany(
+        """
+        INSERT OR IGNORE INTO units (code, name, dimension, to_base_factor)
+        VALUES (?, ?, ?, ?)
+        """,
+        units,
+    )

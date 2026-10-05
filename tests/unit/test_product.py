@@ -535,3 +535,23 @@ def test_product_requires_mrp_when_applicable():
             created_at="2026-10-05T10:00:00",
             mrp_applicable=True,
         )
+
+
+def test_product_unit_quantity_conversions():
+    product = Product(
+        id=None,
+        name="Rice",
+        description=None,
+        sku="RICE-CONV-001",
+        price=120.0,
+        quantity=10,
+        created_at="2026-10-05T10:00:00",
+        base_unit="KG",
+        purchase_unit="BAG",
+        sales_unit="KG",
+        purchase_to_base_conversion=25.0,
+        sales_to_base_conversion=1.0,
+    )
+    assert product.purchase_quantity_to_base(2) == 50
+    assert product.sales_quantity_to_base(2) == 2
+    assert product.base_quantity_to_sales(2) == 2

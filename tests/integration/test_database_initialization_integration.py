@@ -16,6 +16,7 @@ EXPECTED_TABLES = [
     "stock_movements",
     "suppliers",
     "taxes_charges",
+    "units",
 ]
 
 
@@ -55,7 +56,7 @@ def test_initialize_database_creates_initial_schema_version(tmp_path):
             "SELECT id, version FROM schema_version"
         ).fetchone()
 
-        assert result == (1, "2")
+        assert result == (1, "3")
     finally:
         connection.close()
 
@@ -83,7 +84,7 @@ def test_initialize_database_is_repeatable(tmp_path):
         ).fetchall()
 
         assert [row[0] for row in tables] == EXPECTED_TABLES
-        assert schema_versions == [(1, "2")]
+        assert schema_versions == [(1, "3")]
     finally:
         connection.close()
 

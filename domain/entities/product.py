@@ -69,6 +69,25 @@ class Product:
         validate_mrp(self.mrp_applicable, self.default_mrp)
         validate_default_tax_id(self.default_tax_id)
 
+        self.base_unit = self.base_unit.upper()
+        self.purchase_unit = self.purchase_unit.upper()
+        self.sales_unit = self.sales_unit.upper()
+
+    def purchase_quantity_to_base(self, quantity: float) -> float:
+        if quantity < 0:
+            raise ValueError("Purchase quantity cannot be negative.")
+        return quantity * self.purchase_to_base_conversion
+
+    def sales_quantity_to_base(self, quantity: float) -> float:
+        if quantity < 0:
+            raise ValueError("Sales quantity cannot be negative.")
+        return quantity * self.sales_to_base_conversion
+
+    def base_quantity_to_sales(self, quantity: float) -> float:
+        if quantity < 0:
+            raise ValueError("Base quantity cannot be negative.")
+        return quantity / self.sales_to_base_conversion
+
     def add_stock(self, amount: int, created_at: str) -> None:
         validate_stock_addition(amount)
 
