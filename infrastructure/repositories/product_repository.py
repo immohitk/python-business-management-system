@@ -15,9 +15,13 @@ class ProductRepository(Repository[Product]):
         cursor = self.connection.execute(
             """
             INSERT INTO products (
-                name, description, sku, price, quantity, created_at
+                name, description, sku, price, quantity, created_at,
+                category_id, base_unit, purchase_unit, sales_unit,
+                purchase_to_base_conversion, sales_to_base_conversion,
+                is_perishable, mrp_applicable, default_mrp, default_margin,
+                min_margin, max_margin, default_tax_id
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 entity.name,
@@ -26,6 +30,19 @@ class ProductRepository(Repository[Product]):
                 entity.price,
                 entity.quantity,
                 entity.created_at,
+                entity.category_id,
+                entity.base_unit,
+                entity.purchase_unit,
+                entity.sales_unit,
+                entity.purchase_to_base_conversion,
+                entity.sales_to_base_conversion,
+                int(entity.is_perishable),
+                int(entity.mrp_applicable),
+                entity.default_mrp,
+                entity.default_margin,
+                entity.min_margin,
+                entity.max_margin,
+                entity.default_tax_id,
             ),
         )
 
@@ -75,10 +92,29 @@ class ProductRepository(Repository[Product]):
         if existing.price != entity.price:
             changed_fields.append("Per Unit Price")
 
+        if existing.category_id != entity.category_id:
+            changed_fields.append("Category")
+        if existing.base_unit != entity.base_unit or existing.purchase_unit != entity.purchase_unit or existing.sales_unit != entity.sales_unit:
+            changed_fields.append("Units")
+        if existing.purchase_to_base_conversion != entity.purchase_to_base_conversion or existing.sales_to_base_conversion != entity.sales_to_base_conversion:
+            changed_fields.append("Unit Conversion")
+        if existing.is_perishable != entity.is_perishable:
+            changed_fields.append("Perishable")
+        if existing.mrp_applicable != entity.mrp_applicable or existing.default_mrp != entity.default_mrp:
+            changed_fields.append("MRP")
+        if (existing.default_margin != entity.default_margin or existing.min_margin != entity.min_margin or existing.max_margin != entity.max_margin):
+            changed_fields.append("Margins")
+        if existing.default_tax_id != entity.default_tax_id:
+            changed_fields.append("Default Tax")
+
         self.connection.execute(
             """
             UPDATE products
-            SET name=?, description=?, sku=?, price=?, quantity=?, created_at=?
+            SET name=?, description=?, sku=?, price=?, quantity=?, created_at=?,
+                category_id=?, base_unit=?, purchase_unit=?, sales_unit=?,
+                purchase_to_base_conversion=?, sales_to_base_conversion=?,
+                is_perishable=?, mrp_applicable=?, default_mrp=?, default_margin=?,
+                min_margin=?, max_margin=?, default_tax_id=?
             WHERE id=?
             """,
             (
@@ -88,6 +124,19 @@ class ProductRepository(Repository[Product]):
                 entity.price,
                 entity.quantity,
                 entity.created_at,
+                entity.category_id,
+                entity.base_unit,
+                entity.purchase_unit,
+                entity.sales_unit,
+                entity.purchase_to_base_conversion,
+                entity.sales_to_base_conversion,
+                int(entity.is_perishable),
+                int(entity.mrp_applicable),
+                entity.default_mrp,
+                entity.default_margin,
+                entity.min_margin,
+                entity.max_margin,
+                entity.default_tax_id,
                 entity.id,
             ),
         )
@@ -132,7 +181,20 @@ class ProductRepository(Repository[Product]):
                 sku,
                 price,
                 quantity,
-                created_at
+                created_at,
+                category_id,
+                base_unit,
+                purchase_unit,
+                sales_unit,
+                purchase_to_base_conversion,
+                sales_to_base_conversion,
+                is_perishable,
+                mrp_applicable,
+                default_mrp,
+                default_margin,
+                min_margin,
+                max_margin,
+                default_tax_id
             FROM products
             WHERE id=?
             """,
@@ -152,6 +214,19 @@ class ProductRepository(Repository[Product]):
             price=row[4],
             quantity=row[5],
             created_at=row[6],
+            category_id=row[7],
+            base_unit=row[8],
+            purchase_unit=row[9],
+            sales_unit=row[10],
+            purchase_to_base_conversion=row[11],
+            sales_to_base_conversion=row[12],
+            is_perishable=bool(row[13]),
+            mrp_applicable=bool(row[14]),
+            default_mrp=row[15],
+            default_margin=row[16],
+            min_margin=row[17],
+            max_margin=row[18],
+            default_tax_id=row[19],
             movements=self._get_movements(row[0]),
         )
 
@@ -165,7 +240,20 @@ class ProductRepository(Repository[Product]):
                 sku,
                 price,
                 quantity,
-                created_at
+                created_at,
+                category_id,
+                base_unit,
+                purchase_unit,
+                sales_unit,
+                purchase_to_base_conversion,
+                sales_to_base_conversion,
+                is_perishable,
+                mrp_applicable,
+                default_mrp,
+                default_margin,
+                min_margin,
+                max_margin,
+                default_tax_id
             FROM products
             ORDER BY id
             """

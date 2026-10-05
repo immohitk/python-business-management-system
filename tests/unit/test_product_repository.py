@@ -313,3 +313,38 @@ def test_update_product(tmp_path):
         assert result.quantity == 25
     finally:
         connection.close()
+
+
+def test_product_v2_fields_round_trip(tmp_path):
+    repository, connection = create_repository(tmp_path)
+
+    try:
+        product = Product(
+            id=None,
+            name="Rice",
+            description="Premium rice",
+            sku="RICE-100",
+            price=120.0,
+            quantity=10,
+            created_at="2026-10-05T10:00:00",
+            category_id=1,
+            base_unit="KG",
+            purchase_unit="BAG",
+            sales_unit="KG",
+            purchase_to_base_conversion=25.0,
+            sales_to_base_conversion=1.0,
+            is_perishable=True,
+            mrp_applicable=True,
+            default_mrp=150.0,
+            default_margin=20.0,
+            min_margin=10.0,
+            max_margin=30.0,
+            default_tax_id=2,
+        )
+        repository.add(product)
+
+        result = repository.get_by_id(product.id)
+
+        assert result == product
+    finally:
+        connection.close()

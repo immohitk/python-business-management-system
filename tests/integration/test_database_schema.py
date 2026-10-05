@@ -42,6 +42,19 @@ def test_products_table_has_expected_columns(tmp_path):
             "price",
             "quantity",
             "created_at",
+            "category_id",
+            "base_unit",
+            "purchase_unit",
+            "sales_unit",
+            "purchase_to_base_conversion",
+            "sales_to_base_conversion",
+            "is_perishable",
+            "mrp_applicable",
+            "default_mrp",
+            "default_margin",
+            "min_margin",
+            "max_margin",
+            "default_tax_id",
         ]
     finally:
         connection.close()
@@ -367,6 +380,7 @@ def test_database_contains_all_core_business_tables(tmp_path):
         ).fetchall()
 
         assert tables == [
+            ("categories",),
             ("customers",),
             ("invoices",),
             ("product_history",),

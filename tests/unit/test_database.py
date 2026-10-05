@@ -35,7 +35,7 @@ def test_database_initialization_creates_expected_schema(tmp_path, monkeypatch):
         ).fetchone()
 
         assert table == ("schema_version",)
-        assert version == (1, "1")
+        assert version == (1, "2")
     finally:
         connection.close()
 
@@ -58,6 +58,7 @@ def test_initialized_temporary_database_contains_expected_tables(tmp_path):
         ).fetchall()
 
         assert tables == [
+            ("categories",),
             ("customers",),
             ("invoices",),
             ("product_history",),
@@ -97,6 +98,7 @@ def test_database_initialization_is_repeatable_on_temporary_database(tmp_path):
         ).fetchall()
 
         assert tables == [
+            ("categories",),
             ("customers",),
             ("invoices",),
             ("product_history",),
@@ -109,6 +111,6 @@ def test_database_initialization_is_repeatable_on_temporary_database(tmp_path):
             ("suppliers",),
             ("taxes_charges",),
         ]
-        assert version_rows == [(1, "1")]
+        assert version_rows == [(1, "2")]
     finally:
         connection.close()

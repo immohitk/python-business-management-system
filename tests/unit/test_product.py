@@ -469,3 +469,69 @@ def test_product_failed_deduct_stock_does_not_record_movement():
 
     assert product.quantity == 10
     assert product.movements == []
+
+
+def test_product_supports_v2_business_defaults():
+    product = Product(
+        id=None,
+        name="Rice",
+        description="Premium rice",
+        sku="RICE-001",
+        price=120.0,
+        quantity=10,
+        created_at="2026-10-05T10:00:00",
+        category_id=2,
+        base_unit="KG",
+        purchase_unit="BAG",
+        sales_unit="KG",
+        purchase_to_base_conversion=25.0,
+        sales_to_base_conversion=1.0,
+        is_perishable=True,
+        mrp_applicable=True,
+        default_mrp=150.0,
+        default_margin=20.0,
+        min_margin=10.0,
+        max_margin=30.0,
+        default_tax_id=3,
+    )
+
+    assert product.category_id == 2
+    assert product.base_unit == "KG"
+    assert product.purchase_unit == "BAG"
+    assert product.sales_unit == "KG"
+    assert product.purchase_to_base_conversion == 25.0
+    assert product.is_perishable is True
+    assert product.mrp_applicable is True
+    assert product.default_mrp == 150.0
+    assert product.default_margin == 20.0
+    assert product.default_tax_id == 3
+
+
+def test_product_rejects_invalid_margin_range():
+    with pytest.raises(ValueError, match="minimum margin cannot exceed maximum"):
+        Product(
+            id=None,
+            name="Rice",
+            description=None,
+            sku="RICE-002",
+            price=120.0,
+            quantity=1,
+            created_at="2026-10-05T10:00:00",
+            default_margin=20.0,
+            min_margin=40.0,
+            max_margin=30.0,
+        )
+
+
+def test_product_requires_mrp_when_applicable():
+    with pytest.raises(ValueError, match="Default MRP is required"):
+        Product(
+            id=None,
+            name="Rice",
+            description=None,
+            sku="RICE-003",
+            price=120.0,
+            quantity=1,
+            created_at="2026-10-05T10:00:00",
+            mrp_applicable=True,
+        )

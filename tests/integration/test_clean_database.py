@@ -4,6 +4,7 @@ from infrastructure.database.initialization import initialize_database
 
 
 EXPECTED_TABLES = [
+    "categories",
     "customers",
     "invoices",
     "product_history",
@@ -65,7 +66,7 @@ def test_clean_database_contains_initial_schema_version(tmp_path):
             "SELECT id, version FROM schema_version"
         ).fetchone()
 
-        assert result == (1, "1")
+        assert result == (1, "2")
     finally:
         connection.close()
 

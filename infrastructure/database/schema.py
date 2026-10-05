@@ -5,7 +5,13 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 
 INSERT OR IGNORE INTO schema_version (id, version)
-VALUES (1, '1');
+VALUES (1, '2');
+
+CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT
+);
 
 CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY,
@@ -14,7 +20,21 @@ CREATE TABLE IF NOT EXISTS products (
     sku TEXT NOT NULL UNIQUE,
     price REAL NOT NULL,
     quantity INTEGER NOT NULL,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    category_id INTEGER,
+    base_unit TEXT NOT NULL DEFAULT 'PCS',
+    purchase_unit TEXT NOT NULL DEFAULT 'PCS',
+    sales_unit TEXT NOT NULL DEFAULT 'PCS',
+    purchase_to_base_conversion REAL NOT NULL DEFAULT 1.0,
+    sales_to_base_conversion REAL NOT NULL DEFAULT 1.0,
+    is_perishable INTEGER NOT NULL DEFAULT 0,
+    mrp_applicable INTEGER NOT NULL DEFAULT 0,
+    default_mrp REAL,
+    default_margin REAL NOT NULL DEFAULT 0.0,
+    min_margin REAL NOT NULL DEFAULT 0.0,
+    max_margin REAL NOT NULL DEFAULT 100.0,
+    default_tax_id INTEGER,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
 CREATE TABLE IF NOT EXISTS stock_movements (
