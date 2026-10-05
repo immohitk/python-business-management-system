@@ -1,3 +1,4 @@
+import sqlite3
 from pathlib import Path
 
 from infrastructure.database.connection import get_connection
@@ -6,17 +7,29 @@ from infrastructure.database.schema import get_schema_sql
 
 def initialize_database(database_path: Path | None = None) -> None:
     connection = get_connection(database_path)
+    migration_backup = sqlite3.connect(":memory:")
 
     try:
         connection.executescript(get_schema_sql())
-        _migrate_product_columns(connection)
-        _migrate_customer_columns(connection)
-        _migrate_tax_charge_columns(connection)
-        _migrate_supplier_product_table(connection)
-        _seed_units(connection)
-        connection.execute("UPDATE schema_version SET version='4' WHERE id=1")
-        connection.commit()
+        # Keep a recovery point before additive migrations so a failed upgrade
+        # cannot leave an existing database partially migrated.
+        connection.backup(migration_backup)
+
+        try:
+            _migrate_product_columns(connection)
+            _migrate_customer_columns(connection)
+            _migrate_tax_charge_columns(connection)
+            _migrate_supplier_product_table(connection)
+            _seed_units(connection)
+            connection.execute("UPDATE schema_version SET version='4' WHERE id=1")
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            migration_backup.backup(connection)
+            connection.commit()
+            raise
     finally:
+        migration_backup.close()
         connection.close()
 
 def _migrate_product_columns(connection) -> None:
