@@ -7,6 +7,7 @@ from datetime import datetime
 from domain.entities.customer import Customer
 from domain.entities.product import Product
 from domain.entities.supplier import Supplier
+from domain.entities.sale import Sale
 from presentation.cli.context import CLIContext
 
 
@@ -67,6 +68,11 @@ class GUIApplication:
 
         if name == "Inventory":
             self._show_inventory()
+            self.root.after_idle(self._refresh_initial_layout)
+            return
+
+        if name == "Sales":
+            self._show_sales()
             self.root.after_idle(self._refresh_initial_layout)
             return
 
@@ -2910,6 +2916,284 @@ class GUIApplication:
 
         load_stock()
 
+
+    def _show_sales(self) -> None:
+        sales_content = ttk.Frame(self.content)
+        sales_content.pack(fill="both", expand=True)
+
+        sales_cache = []
+        customer_cache = []
+        payment_totals = {}
+        sort_state = {
+            "column": "id",
+            "descending": False,
+        }
+
+        style = ttk.Style()
+        style.configure(
+            "Sales.Treeview.Heading",
+            font=("TkDefaultFont", 10, "bold"),
+        )
+
+        top_bar = ttk.Frame(sales_content)
+        top_bar.pack(
+            fill="x",
+            pady=(0, 10),
+        )
+
+        operation_frame = ttk.LabelFrame(
+            top_bar,
+            text="Sales Operations",
+            padding=8,
+        )
+        operation_frame.pack(
+            side="left",
+            fill="y",
+        )
+
+        create_button = ttk.Button(
+            operation_frame,
+            text="Create Sale",
+            command=lambda: messagebox.showinfo(
+                "Sales",
+                "Sale creation will be added in the next Sales topic.",
+            ),
+        )
+        create_button.pack(
+            padx=4,
+            pady=2,
+        )
+
+        search_frame = ttk.LabelFrame(
+            top_bar,
+            text="Search",
+            padding=8,
+        )
+        search_frame.pack(
+            side="right",
+            fill="x",
+            expand=True,
+            padx=(10, 0),
+        )
+
+        search_var = tk.StringVar()
+        search_placeholder = "Search by ID, Customer or Sale Date"
+        search_placeholder_active = {"value": True}
+
+        search_entry = ttk.Entry(
+            search_frame,
+            textvariable=search_var,
+        )
+        search_entry.pack(
+            side="right",
+            fill="x",
+            expand=True,
+        )
+        search_entry.insert(0, search_placeholder)
+        search_entry.configure(foreground="gray")
+
+        table_frame = ttk.LabelFrame(
+            sales_content,
+            text="Sales",
+            padding=10,
+        )
+        table_frame.pack(
+            fill="both",
+            expand=True,
+        )
+
+        table_container = ttk.Frame(table_frame)
+        table_container.pack(
+            fill="both",
+            expand=True,
+        )
+
+        sales_list = ttk.Treeview(
+            table_container,
+            columns=(
+                "id",
+                "customer",
+                "date",
+                "total",
+                "paid",
+                "balance",
+            ),
+            show="headings",
+            style="Sales.Treeview",
+        )
+
+        headings = (
+            ("id", "ID"),
+            ("customer", "Customer"),
+            ("date", "Sale Date"),
+            ("total", "Total Amount"),
+            ("paid", "Paid Amount"),
+            ("balance", "Balance"),
+        )
+
+        for column, heading in headings:
+            sales_list.heading(
+                column,
+                text=heading,
+                command=lambda c=column: sort_sales(c),
+            )
+            sales_list.column(
+                column,
+                width=1,
+                anchor="center",
+                stretch=True,
+            )
+
+        sales_scrollbar = ttk.Scrollbar(
+            table_container,
+            orient="vertical",
+            command=sales_list.yview,
+        )
+        sales_list.configure(yscrollcommand=sales_scrollbar.set)
+        sales_list.pack(
+            side="left",
+            fill="both",
+            expand=True,
+        )
+        sales_scrollbar.pack(
+            side="right",
+            fill="y",
+        )
+
+        def resize_sales_columns(event=None) -> None:
+            available_width = max(sales_list.winfo_width() - 2, 1)
+            widths = {
+                "id": 0.10,
+                "customer": 0.24,
+                "date": 0.20,
+                "total": 0.16,
+                "paid": 0.15,
+                "balance": 0.15,
+            }
+            for column, ratio in widths.items():
+                sales_list.column(
+                    column,
+                    width=max(1, int(available_width * ratio)),
+                )
+
+        sales_list.bind("<Configure>", resize_sales_columns)
+
+        def sort_sales(column: str) -> None:
+            if sort_state["column"] == column:
+                sort_state["descending"] = not sort_state["descending"]
+            else:
+                sort_state["column"] = column
+                sort_state["descending"] = False
+            refresh_sales()
+
+        def update_sales_headings() -> None:
+            for column, heading in headings:
+                arrow = ""
+                if sort_state["column"] == column:
+                    arrow = " ▼" if sort_state["descending"] else " ▲"
+                sales_list.heading(
+                    column,
+                    text=heading + arrow,
+                )
+
+        def customer_name(customer_id: int) -> str:
+            customer = next(
+                (item for item in customer_cache if item.id == customer_id),
+                None,
+            )
+            if customer is None:
+                return f"Customer #{customer_id}"
+            return customer.name
+
+        def refresh_sales() -> None:
+            nonlocal sales_cache, customer_cache, payment_totals
+
+            sales_cache = self.context.sale_service.get_sales()
+            customer_cache = self.context.customer_service.get_customers()
+            payments = self.context.sale_payment_service.get_payments()
+            payment_totals = {}
+            for payment in payments:
+                payment_totals[payment.sale_id] = (
+                    payment_totals.get(payment.sale_id, 0.0)
+                    + payment.amount
+                )
+
+            query = ""
+            if not search_placeholder_active["value"]:
+                query = search_var.get().strip().lower()
+
+            filtered_sales = []
+            for sale in sales_cache:
+                name = customer_name(sale.customer_id)
+                if query:
+                    searchable = (
+                        str(sale.id),
+                        name.lower(),
+                        sale.sale_date.lower(),
+                    )
+                    if not any(query in value for value in searchable):
+                        continue
+                filtered_sales.append(sale)
+
+            def sort_value(sale):
+                paid = payment_totals.get(sale.id, 0.0)
+                balance = sale.total_amount - paid
+                values = {
+                    "id": sale.id or 0,
+                    "customer": customer_name(sale.customer_id).lower(),
+                    "date": sale.sale_date,
+                    "total": sale.total_amount,
+                    "paid": paid,
+                    "balance": balance,
+                }
+                return values[sort_state["column"]]
+
+            filtered_sales.sort(
+                key=sort_value,
+                reverse=sort_state["descending"],
+            )
+
+            for item in sales_list.get_children():
+                sales_list.delete(item)
+
+            for sale in filtered_sales:
+                paid = payment_totals.get(sale.id, 0.0)
+                balance = sale.total_amount - paid
+                sales_list.insert(
+                    "",
+                    "end",
+                    values=(
+                        sale.id,
+                        customer_name(sale.customer_id),
+                        sale.sale_date,
+                        f"₹{sale.total_amount:.2f}",
+                        f"₹{paid:.2f}",
+                        f"₹{balance:.2f}",
+                    ),
+                )
+
+            update_sales_headings()
+
+        def clear_search_placeholder(event=None) -> None:
+            if search_placeholder_active["value"]:
+                search_placeholder_active["value"] = False
+                search_entry.delete(0, tk.END)
+                search_entry.configure(foreground="black")
+            refresh_sales()
+
+        def restore_search_placeholder(event=None) -> None:
+            if not search_entry.get().strip():
+                search_placeholder_active["value"] = True
+                search_entry.delete(0, tk.END)
+                search_entry.insert(0, search_placeholder)
+                search_entry.configure(foreground="gray")
+            refresh_sales()
+
+        search_entry.bind("<FocusIn>", clear_search_placeholder)
+        search_entry.bind("<FocusOut>", restore_search_placeholder)
+        search_entry.bind("<KeyRelease>", lambda event: refresh_sales())
+
+        refresh_sales()
 
     def _show_customers(self) -> None:
         title = ttk.Label(
