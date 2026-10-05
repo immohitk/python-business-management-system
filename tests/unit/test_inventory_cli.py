@@ -180,7 +180,7 @@ def test_adjust_stock_calls_service(capsys, monkeypatch):
 def test_handle_inventory_adjust_stock(capsys, monkeypatch):
     service = Mock()
 
-    inputs = iter(["4", "1", "20", "0"])
+    inputs = iter(["3", "1", "20", "0"])
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
 
     handle_inventory(service)

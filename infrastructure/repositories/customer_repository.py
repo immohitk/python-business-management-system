@@ -19,15 +19,23 @@ class CustomerRepository(Repository[Customer]):
                 phone,
                 email,
                 address,
+                city,
+                state,
+                pincode,
+                status,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 entity.name,
                 entity.phone,
                 entity.email,
                 entity.address,
+                entity.city,
+                entity.state,
+                entity.pincode,
+                entity.status,
                 entity.created_at,
             ),
         )
@@ -44,6 +52,10 @@ class CustomerRepository(Repository[Customer]):
                 phone,
                 email,
                 address,
+                city,
+                state,
+                pincode,
+                status,
                 created_at
             FROM customers
             WHERE id = ?
@@ -60,7 +72,11 @@ class CustomerRepository(Repository[Customer]):
             phone=row[2],
             email=row[3],
             address=row[4],
-            created_at=row[5],
+            city=row[5],
+            state=row[6],
+            pincode=row[7],
+            status=row[8],
+            created_at=row[9],
         )
 
     def get_all(self) -> list[Customer]:
@@ -72,6 +88,10 @@ class CustomerRepository(Repository[Customer]):
                 phone,
                 email,
                 address,
+                city,
+                state,
+                pincode,
+                status,
                 created_at
             FROM customers
             ORDER BY id
@@ -85,7 +105,11 @@ class CustomerRepository(Repository[Customer]):
                 phone=row[2],
                 email=row[3],
                 address=row[4],
-                created_at=row[5],
+                created_at=row[9],
+                city=row[5],
+                state=row[6],
+                pincode=row[7],
+                status=row[8],
             )
             for row in rows
         ]

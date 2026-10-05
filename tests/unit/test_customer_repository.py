@@ -21,6 +21,10 @@ def create_customer() -> Customer:
         phone="9876543210",
         email="rahul@example.com",
         address="Delhi",
+        city="New Delhi",
+        state="Delhi",
+        pincode="110001",
+        status="ACTIVE",
         created_at="2026-09-07T20:00:00",
     )
 
@@ -75,6 +79,10 @@ def test_get_all_customers(tmp_path):
             phone="9123456780",
             email="priya@example.com",
             address="Mumbai",
+            city="Mumbai",
+            state="Maharashtra",
+            pincode="400001",
+            status="ACTIVE",
             created_at="2026-09-07T20:00:00",
         )
 
@@ -112,6 +120,10 @@ def test_customer_with_optional_fields_none_persists(tmp_path):
             phone=None,
             email=None,
             address=None,
+            city=None,
+            state=None,
+            pincode=None,
+            status="ACTIVE",
             created_at="2026-09-07T20:00:00",
         )
 
@@ -135,6 +147,10 @@ def test_customer_listing_preserves_persisted_data(tmp_path):
             phone="9123456780",
             email="priya@example.com",
             address="Mumbai",
+            city="Mumbai",
+            state="Maharashtra",
+            pincode="400001",
+            status="ACTIVE",
             created_at="2026-09-07T20:00:00",
         )
 

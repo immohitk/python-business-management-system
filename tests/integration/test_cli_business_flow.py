@@ -49,6 +49,9 @@ def test_cli_business_flow_product_customer_sale_invoice(
                 "9876543210",
                 "cli@example.com",
                 "Bengaluru",
+                "Bengaluru",
+                "Karnataka",
+                "560001",
             ]
         )
 

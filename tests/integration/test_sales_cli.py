@@ -91,7 +91,7 @@ def test_sale_cli_deducts_inventory_and_records_movement(
                 "1",
                 "2026-09-22",
                 str(product.id),
-                "4",
+                "3",
                 "500",
                 "n",
             ]

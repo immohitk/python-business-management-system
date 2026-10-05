@@ -84,6 +84,10 @@ CREATE TABLE IF NOT EXISTS customers (
     phone TEXT,
     email TEXT,
     address TEXT,
+    city TEXT,
+    state TEXT,
+    pincode TEXT,
+    status TEXT NOT NULL DEFAULT 'ACTIVE',
     created_at TEXT NOT NULL
 );
 
@@ -95,21 +99,6 @@ CREATE TABLE IF NOT EXISTS suppliers (
     address TEXT,
     created_at TEXT NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS supplier_products (
-    supplier_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
-    PRIMARY KEY (supplier_id, product_id),
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_supplier_products_supplier_id
-    ON supplier_products(supplier_id);
-
-CREATE INDEX IF NOT EXISTS idx_supplier_products_product_id
-    ON supplier_products(product_id);
-
 
 CREATE TABLE IF NOT EXISTS sales (
     id INTEGER PRIMARY KEY,

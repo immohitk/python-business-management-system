@@ -31,6 +31,10 @@ def create_customer() -> Customer:
         phone="9876543210",
         email="rahul@example.com",
         address="Delhi",
+        city="New Delhi",
+        state="Delhi",
+        pincode="110001",
+        status="ACTIVE",
         created_at="2026-09-13T10:00:00",
     )
 

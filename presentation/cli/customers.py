@@ -21,6 +21,9 @@ def add_customer(service: CustomerService) -> None:
     phone = input("Phone: ")
     email = input("Email: ") or None
     address = input("Address: ") or None
+    city = input("City: ") or None
+    state = input("State: ") or None
+    pincode = input("Pincode: ") or None
 
     customer = Customer(
         id=None,
@@ -28,6 +31,10 @@ def add_customer(service: CustomerService) -> None:
         phone=phone,
         email=email,
         address=address,
+        city=city,
+        state=state,
+        pincode=pincode,
+        status="ACTIVE",
         created_at=datetime.now().isoformat(timespec="seconds"),
     )
 
@@ -51,7 +58,8 @@ def list_customers(service: CustomerService) -> None:
             f"ID: {customer.id} | "
             f"Name: {customer.name} | "
             f"Phone: {customer.phone or '-'} | "
-            f"Email: {customer.email or '-'}"
+            f"Email: {customer.email or '-'} | "
+            f"Status: {customer.status}"
         )
 
 
@@ -71,6 +79,10 @@ def get_customer(service: CustomerService) -> None:
     print(f"Phone: {customer.phone or '-'}")
     print(f"Email: {customer.email or '-'}")
     print(f"Address: {customer.address or '-'}")
+    print(f"City: {customer.city or '-'}")
+    print(f"State: {customer.state or '-'}")
+    print(f"Pincode: {customer.pincode or '-'}")
+    print(f"Status: {customer.status}")
 
 
 def delete_customer(service: CustomerService) -> None:

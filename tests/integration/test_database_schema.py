@@ -114,6 +114,10 @@ def test_customers_table_has_expected_columns(tmp_path):
             "phone",
             "email",
             "address",
+            "city",
+            "state",
+            "pincode",
+            "status",
             "created_at",
         ]
     finally:
@@ -390,7 +394,6 @@ def test_database_contains_all_core_business_tables(tmp_path):
             ("sales",),
             ("schema_version",),
             ("stock_movements",),
-            ("supplier_products",),
             ("suppliers",),
             ("taxes_charges",),
             ("units",),

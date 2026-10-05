@@ -10,9 +10,9 @@ def initialize_database(database_path: Path | None = None) -> None:
     try:
         connection.executescript(get_schema_sql())
         _migrate_product_columns(connection)
-        _migrate_supplier_product_relationship(connection)
+        _migrate_customer_columns(connection)
         _seed_units(connection)
-        connection.execute("UPDATE schema_version SET version='4' WHERE id=1")
+        connection.execute("UPDATE schema_version SET version='3' WHERE id=1")
         connection.commit()
     finally:
         connection.close()
@@ -47,29 +47,6 @@ def _migrate_product_columns(connection) -> None:
             )
 
 
-def _migrate_supplier_product_relationship(connection) -> None:
-    """Add the v2.0 Supplier ↔ Product many-to-many relationship."""
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS supplier_products (
-            supplier_id INTEGER NOT NULL,
-            product_id INTEGER NOT NULL,
-            PRIMARY KEY (supplier_id, product_id),
-            FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
-            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-        )
-        """
-    )
-    connection.execute(
-        "CREATE INDEX IF NOT EXISTS idx_supplier_products_supplier_id "
-        "ON supplier_products(supplier_id)"
-    )
-    connection.execute(
-        "CREATE INDEX IF NOT EXISTS idx_supplier_products_product_id "
-        "ON supplier_products(product_id)"
-    )
-
-
 def _seed_units(connection) -> None:
     """Seed the standard v2 unit catalog without overwriting user changes."""
     units = [
@@ -92,3 +69,20 @@ def _seed_units(connection) -> None:
         """,
         units,
     )
+
+
+def _migrate_customer_columns(connection) -> None:
+    """Add v2 customer fields without changing existing customer data."""
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(customers)")}
+    additions = {
+        "city": "TEXT",
+        "state": "TEXT",
+        "pincode": "TEXT",
+        "status": "TEXT NOT NULL DEFAULT 'ACTIVE'",
+    }
+
+    for column, definition in additions.items():
+        if column not in columns:
+            connection.execute(
+                f"ALTER TABLE customers ADD COLUMN {column} {definition}"
+            )

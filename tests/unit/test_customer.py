@@ -8,6 +8,10 @@ def create_customer() -> Customer:
         phone="9876543210",
         email="rahul@example.com",
         address="Delhi",
+        city="New Delhi",
+        state="Delhi",
+        pincode="110001",
+        status="ACTIVE",
         created_at="2026-09-13T10:00:00",
     )
 
@@ -29,6 +33,10 @@ def test_customer_name_cannot_be_empty():
             phone=None,
             email=None,
             address=None,
+            city=None,
+            state=None,
+            pincode=None,
+            status="ACTIVE",
             created_at="2026-09-13T10:00:00",
         )
     except ValueError as error:
@@ -45,6 +53,10 @@ def test_customer_name_cannot_be_whitespace():
             phone=None,
             email=None,
             address=None,
+            city=None,
+            state=None,
+            pincode=None,
+            status="ACTIVE",
             created_at="2026-09-13T10:00:00",
         )
     except ValueError as error:
@@ -61,6 +73,10 @@ def test_customer_created_at_cannot_be_empty():
             phone=None,
             email=None,
             address=None,
+            city=None,
+            state=None,
+            pincode=None,
+            status="ACTIVE",
             created_at="",
         )
     except ValueError as error:
@@ -77,6 +93,10 @@ def test_customer_created_at_cannot_be_whitespace():
             phone=None,
             email=None,
             address=None,
+            city=None,
+            state=None,
+            pincode=None,
+            status="ACTIVE",
             created_at="   ",
         )
     except ValueError as error:
@@ -106,3 +126,16 @@ def test_customer_id_can_be_none_before_persistence():
     customer = create_customer()
 
     assert customer.id is None
+
+
+def test_customer_status_must_be_valid():
+    try:
+        Customer(
+            id=None, name="Rahul Sharma", phone=None, email=None, address=None,
+            city=None, state=None, pincode=None, status="UNKNOWN",
+            created_at="2026-09-13T10:00:00",
+        )
+    except ValueError as error:
+        assert str(error) == "Customer status must be ACTIVE or INACTIVE."
+    else:
+        raise AssertionError("Expected invalid customer status to fail.")

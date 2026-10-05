@@ -319,11 +319,6 @@ class ProductRepository(Repository[Product]):
         )
 
         self.connection.execute(
-            "DELETE FROM supplier_products WHERE product_id = ?",
-            (entity_id,),
-        )
-
-        self.connection.execute(
             """
             DELETE FROM products
             WHERE id=?

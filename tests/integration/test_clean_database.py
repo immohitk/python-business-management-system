@@ -14,7 +14,6 @@ EXPECTED_TABLES = [
     "sales",
     "schema_version",
     "stock_movements",
-    "supplier_products",
     "suppliers",
     "taxes_charges",
     "units",
@@ -68,7 +67,7 @@ def test_clean_database_contains_initial_schema_version(tmp_path):
             "SELECT id, version FROM schema_version"
         ).fetchone()
 
-        assert result == (1, "4")
+        assert result == (1, "3")
     finally:
         connection.close()
 

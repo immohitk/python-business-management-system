@@ -25,6 +25,9 @@ def test_add_customer_creates_and_persists_customer(monkeypatch, capsys):
             "9876543210",
             "rahul@example.com",
             "Bengaluru",
+            "Bengaluru",
+            "Karnataka",
+            "560001",
         ]
     )
 

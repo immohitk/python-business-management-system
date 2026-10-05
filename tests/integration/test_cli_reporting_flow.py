@@ -49,6 +49,9 @@ def test_cli_reporting_uses_shared_application_context(
                 "9876543210",
                 "report@example.com",
                 "Bengaluru",
+                "Bengaluru",
+                "Karnataka",
+                "560001",
             ]
         )
 
