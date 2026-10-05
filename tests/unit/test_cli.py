@@ -44,7 +44,7 @@ def test_handle_choice_inventory(capsys, monkeypatch):
 def test_handle_choice_sales(capsys, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _: "0")
 
-    result = handle_choice("3")
+    result = handle_choice("4")
 
     captured = capsys.readouterr()
 

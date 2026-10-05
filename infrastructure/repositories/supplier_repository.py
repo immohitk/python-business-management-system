@@ -92,6 +92,10 @@ class SupplierRepository(Repository[Supplier]):
 
     def delete(self, entity_id: int) -> None:
         self.connection.execute(
+            "DELETE FROM supplier_products WHERE supplier_id = ?",
+            (entity_id,),
+        )
+        self.connection.execute(
             """
             DELETE FROM suppliers
             WHERE id = ?

@@ -101,7 +101,7 @@ def test_create_sale_creates_multiple_lines(capsys):
             "1000",
             "y",
             "2",
-            "3",
+            "4",
             "500",
             "n",
         ],
